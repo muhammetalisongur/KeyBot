@@ -289,6 +289,12 @@ namespace KeyBot
             }
         }
 
+        private void ClearAllKeysButton_Click(object sender, EventArgs e)
+        {
+            keySequence.Clear();
+            keySequenceList.Items.Clear();
+        }
+
         private void LoadSettings()
         {
             try

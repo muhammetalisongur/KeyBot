@@ -12,6 +12,7 @@ namespace KeyBot
         private ListBox keySequenceList;
         private Button addKeyButton;
         private Button removeKeyButton;
+        private Button clearAllKeysButton;
         private ComboBox newKeyComboBox;
         private NumericUpDown keyDelayNumeric;
         private Label keyDelayLabel;
@@ -44,6 +45,7 @@ namespace KeyBot
             keyDelayLabel = new Label();
             keyDelayNumeric = new NumericUpDown();
             newKeyComboBox = new ComboBox();
+            clearAllKeysButton = new Button();
             removeKeyButton = new Button();
             addKeyButton = new Button();
             keySequenceList = new ListBox();
@@ -81,7 +83,7 @@ namespace KeyBot
             keyGroup.Margin = new Padding(3, 4, 3, 4);
             keyGroup.Name = "keyGroup";
             keyGroup.Padding = new Padding(3, 4, 3, 4);
-            keyGroup.Size = new Size(503, 320);
+            keyGroup.Size = new Size(503, 340);
             keyGroup.TabIndex = 0;
             keyGroup.TabStop = false;
             keyGroup.Text = "Tuş Seçimi";
@@ -91,13 +93,14 @@ namespace KeyBot
             multiKeyGroup.Controls.Add(keyDelayLabel);
             multiKeyGroup.Controls.Add(keyDelayNumeric);
             multiKeyGroup.Controls.Add(newKeyComboBox);
+            multiKeyGroup.Controls.Add(clearAllKeysButton);
             multiKeyGroup.Controls.Add(removeKeyButton);
             multiKeyGroup.Controls.Add(addKeyButton);
             multiKeyGroup.Controls.Add(keySequenceList);
             multiKeyGroup.Enabled = false;
             multiKeyGroup.Location = new Point(23, 120);
             multiKeyGroup.Name = "multiKeyGroup";
-            multiKeyGroup.Size = new Size(460, 180);
+            multiKeyGroup.Size = new Size(460, 200);
             multiKeyGroup.TabIndex = 4;
             multiKeyGroup.TabStop = false;
             multiKeyGroup.Text = "Tuş Dizisi";
@@ -132,6 +135,17 @@ namespace KeyBot
             newKeyComboBox.Name = "newKeyComboBox";
             newKeyComboBox.Size = new Size(120, 28);
             newKeyComboBox.TabIndex = 3;
+            // 
+            // clearAllKeysButton
+            // 
+            clearAllKeysButton.Cursor = Cursors.Hand;
+            clearAllKeysButton.Location = new Point(240, 120);
+            clearAllKeysButton.Name = "clearAllKeysButton";
+            clearAllKeysButton.Size = new Size(75, 35);
+            clearAllKeysButton.TabIndex = 6;
+            clearAllKeysButton.Text = "Tüm. Sil";
+            clearAllKeysButton.UseVisualStyleBackColor = true;
+            clearAllKeysButton.Click += ClearAllKeysButton_Click;
             // 
             // removeKeyButton
             // 
@@ -216,7 +230,7 @@ namespace KeyBot
             timeGroup.Controls.Add(repeatLabel);
             timeGroup.Controls.Add(intervalNumeric);
             timeGroup.Controls.Add(intervalLabel);
-            timeGroup.Location = new Point(23, 370);
+            timeGroup.Location = new Point(23, 390);
             timeGroup.Margin = new Padding(3, 4, 3, 4);
             timeGroup.Name = "timeGroup";
             timeGroup.Padding = new Padding(3, 4, 3, 4);
@@ -284,7 +298,7 @@ namespace KeyBot
             // 
             startButton.BackColor = Color.LightGreen;
             startButton.Cursor = Cursors.Hand;
-            startButton.Location = new Point(23, 530);
+            startButton.Location = new Point(23, 550);
             startButton.Margin = new Padding(3, 4, 3, 4);
             startButton.Name = "startButton";
             startButton.Size = new Size(114, 53);
@@ -298,7 +312,7 @@ namespace KeyBot
             stopButton.BackColor = Color.LightCoral;
             stopButton.Cursor = Cursors.Hand;
             stopButton.Enabled = false;
-            stopButton.Location = new Point(160, 530);
+            stopButton.Location = new Point(160, 550);
             stopButton.Margin = new Padding(3, 4, 3, 4);
             stopButton.Name = "stopButton";
             stopButton.Size = new Size(114, 53);
@@ -310,7 +324,7 @@ namespace KeyBot
             // statusLabel
             // 
             statusLabel.AutoSize = true;
-            statusLabel.Location = new Point(297, 543);
+            statusLabel.Location = new Point(297, 563);
             statusLabel.Name = "statusLabel";
             statusLabel.Size = new Size(44, 20);
             statusLabel.TabIndex = 4;
@@ -318,7 +332,7 @@ namespace KeyBot
             // 
             // progressBar
             // 
-            progressBar.Location = new Point(23, 605);
+            progressBar.Location = new Point(23, 625);
             progressBar.Margin = new Padding(3, 4, 3, 4);
             progressBar.Name = "progressBar";
             progressBar.Size = new Size(503, 27);
@@ -330,7 +344,7 @@ namespace KeyBot
             developerLabel.Cursor = Cursors.Hand;
             developerLabel.Font = new Font("Segoe UI", 8.25F, FontStyle.Italic);
             developerLabel.ForeColor = Color.Gray;
-            developerLabel.Location = new Point(23, 652);
+            developerLabel.Location = new Point(23, 672);
             developerLabel.Name = "developerLabel";
             developerLabel.Size = new Size(412, 19);
             developerLabel.TabIndex = 6;
@@ -341,7 +355,7 @@ namespace KeyBot
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(546, 680);
+            ClientSize = new Size(546, 700);
             Controls.Add(developerLabel);
             Controls.Add(progressBar);
             Controls.Add(statusLabel);
