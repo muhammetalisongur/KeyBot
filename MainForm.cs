@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
+using System.Media;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows.Forms;
@@ -21,11 +22,13 @@ namespace KeyBot
         const int KEYEVENTF_KEYUP = 0x0002;
 
         private System.Windows.Forms.Timer? automationTimer;
+        private System.Windows.Forms.Timer? countdownTimer;
         private int currentRepeatCount = 0;
         private int targetRepeatCount = 0;
         private bool isRunning = false;
         private List<KeySequenceItem> keySequence = new List<KeySequenceItem>();
         private int currentKeyIndex = 0;
+        private int countdownSeconds = 0;
         private const string SettingsFileName = "KeyBot_Settings.json";
 
         public MainForm()
@@ -72,6 +75,13 @@ namespace KeyBot
                 }
             }
 
+            // Kullanıcıya hedef uygulamaya geçiş için uyarı
+            MessageBox.Show("3 saniye sonra otomasyon başlayacak!\n\nBu süre içinde hedef uygulamaya geçiş yapın (Alt+Tab)", 
+                          "Hazır Olun!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            // Başlatma sesi çal
+            SystemSounds.Exclamation.Play();
+
             bool isInfinite = infiniteCheckBox.Checked;
             targetRepeatCount = isInfinite ? -1 : (int)repeatNumeric.Value;
             currentRepeatCount = 0;
@@ -81,26 +91,14 @@ namespace KeyBot
             startButton.Enabled = false;
             stopButton.Enabled = true;
 
-            if (isInfinite)
-            {
-                statusLabel.Text = "Sınırsız çalışıyor...";
-                progressBar.Style = ProgressBarStyle.Marquee;
-                progressBar.MarqueeAnimationSpeed = 50;
-            }
-            else
-            {
-                statusLabel.Text = "Çalışıyor...";
-                progressBar.Style = ProgressBarStyle.Continuous;
-                progressBar.Maximum = targetRepeatCount;
-                progressBar.Value = 0;
-            }
-
-            int intervalMs = (int)(intervalNumeric.Value * 1000);
-
-            automationTimer = new System.Windows.Forms.Timer();
-            automationTimer.Interval = intervalMs;
-            automationTimer.Tick += AutomationTimer_Tick;
-            automationTimer.Start();
+            // 3 saniye geri sayım başlat
+            countdownSeconds = 3;
+            statusLabel.Text = $"Başlatılıyor... {countdownSeconds}";
+            
+            countdownTimer = new System.Windows.Forms.Timer();
+            countdownTimer.Interval = 1000; // 1 saniye
+            countdownTimer.Tick += CountdownTimer_Tick;
+            countdownTimer.Start();
         }
 
         private void AutomationTimer_Tick(object? sender, EventArgs e)
@@ -173,6 +171,53 @@ namespace KeyBot
             }
         }
 
+        private void CountdownTimer_Tick(object? sender, EventArgs e)
+        {
+            countdownSeconds--;
+            
+            if (countdownSeconds > 0)
+            {
+                statusLabel.Text = $"Başlatılıyor... {countdownSeconds}";
+                SystemSounds.Beep.Play();
+            }
+            else
+            {
+                // Geri sayım bitti, gerçek otomasyonu başlat
+                countdownTimer?.Stop();
+                countdownTimer?.Dispose();
+                countdownTimer = null;
+                
+                SystemSounds.Hand.Play(); // Başlatma sesi
+                StartAutomation();
+            }
+        }
+
+        private void StartAutomation()
+        {
+            bool isInfinite = infiniteCheckBox.Checked;
+            
+            if (isInfinite)
+            {
+                statusLabel.Text = "Sınırsız çalışıyor...";
+                progressBar.Style = ProgressBarStyle.Marquee;
+                progressBar.MarqueeAnimationSpeed = 50;
+            }
+            else
+            {
+                statusLabel.Text = "Çalışıyor...";
+                progressBar.Style = ProgressBarStyle.Continuous;
+                progressBar.Maximum = targetRepeatCount;
+                progressBar.Value = 0;
+            }
+
+            int intervalMs = (int)(intervalNumeric.Value * 1000);
+
+            automationTimer = new System.Windows.Forms.Timer();
+            automationTimer.Interval = intervalMs;
+            automationTimer.Tick += AutomationTimer_Tick;
+            automationTimer.Start();
+        }
+
         private void StopButton_Click(object sender, EventArgs e)
         {
             StopAutomation();
@@ -180,6 +225,14 @@ namespace KeyBot
 
         private void StopAutomation()
         {
+            // Geri sayım timer'ını da durdur
+            if (countdownTimer != null)
+            {
+                countdownTimer.Stop();
+                countdownTimer.Dispose();
+                countdownTimer = null;
+            }
+
             if (automationTimer != null)
             {
                 automationTimer.Stop();
@@ -188,6 +241,9 @@ namespace KeyBot
             }
 
             isRunning = false;
+
+            // Durdurma sesi çal
+            SystemSounds.Asterisk.Play();
 
             startButton.Enabled = true;
             stopButton.Enabled = false;

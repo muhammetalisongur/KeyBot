@@ -17,6 +17,8 @@ KeyBot, Windows işletim sistemi için geliştirilmiş kullanıcı dostu bir tu�
 - **Çoklu Tuş Modu**: Tuş dizisi oluştur ve her tuş için farklı gecikme ayarla
 - **Hassas Zamanlama**: 0.1 - 60.0 saniye arası aralık ayarı
 - **Tekrar Kontrolü**: 1-1000 arası belirli tekrar veya sınırsız mod
+- **Geri Sayım**: 3 saniye sesli geri sayım ile güvenli başlatma
+- **Ses Efektleri**: Başlatma, durdurma ve geri sayım sesleri
 - **Ayar Kalıcılığı**: Tüm ayarlar otomatik kaydedilir
 
 ### Kullanıcı Arayüzü
@@ -24,6 +26,7 @@ KeyBot, Windows işletim sistemi için geliştirilmiş kullanıcı dostu bir tu�
 - Gerçek zamanlı durum gösterimi
 - İlerleme çubuğu
 - Hand cursor ile tıklanabilir alanların belirtilmesi
+- Sesli uyarılar ve geri bildirimler
 
 ## Sistem Gereksinimleri
 
@@ -53,7 +56,17 @@ dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
 1. **Tuş Seçimi**: Mod seçin (tek tuş veya çoklu tuş)
 2. **Zaman Ayarları**: Aralık ve tekrar sayısını belirleyin
 3. **Başlatma**: Başlat butonuna tıklayın
+   - 3 saniye sesli geri sayım başlar
+   - Bu süre içinde hedef uygulamaya geçiş yapın (Alt+Tab)
+   - Otomasyon otomatik olarak başlar
 4. **Durdurma**: İstediğiniz zaman durdur butonuna tıklayın
+
+### Hedef Uygulama Seçimi
+**Önemli**: KeyBot tuş komutlarını aktif pencereye gönderir. Bu nedenle:
+- Başlat butonuna tıkladıktan sonra 3 saniye süreniz vardır
+- Bu süre içinde **Alt+Tab** ile hedef uygulamaya geçin
+- Veya fare ile hedef uygulamanın penceresine tıklayın
+- Otomasyon seçilen uygulamada çalışmaya başlar
 
 ### Çoklu Tuş Modu
 - Çoklu tuş modunu seçin
