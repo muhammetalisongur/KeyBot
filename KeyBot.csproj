@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>KeyBot</AssemblyName>
+    <Product>KeyBot - Keyboard Automation Tool</Product>
+    <AssemblyTitle>KeyBot</AssemblyTitle>
+    <AssemblyDescription>Windows için geliştirilmiş profesyonel tuş otomasyonu uygulaması</AssemblyDescription>
+    <AssemblyCompany>KeyBot Development</AssemblyCompany>
+    <AssemblyCopyright>Copyright © 2024 KeyBot Development</AssemblyCopyright>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <StartupObject>KeyBot.Program</StartupObject>
+  </PropertyGroup>
+
+</Project> 

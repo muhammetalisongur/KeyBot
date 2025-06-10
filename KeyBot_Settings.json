@@ -1,0 +1,13 @@
+{
+  "IsSingleKeyMode": true,
+  "SelectedKey": "C",
+  "Interval": 1.0,
+  "RepeatCount": 10,
+  "IsInfinite": false,
+  "KeySequence": [
+    {
+      "KeyName": "C",
+      "Delay": 0.5
+    }
+  ]
+}
