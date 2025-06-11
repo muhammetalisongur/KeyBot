@@ -51,6 +51,17 @@ KeyBot, Windows işletim sistemi için geliştirilmiş kullanıcı dostu bir tu�
 
 ## Kurulum
 
+### Hazır Uygulama İndir (Önerilen)
+**En kolay yöntem**: [Releases](https://github.com/muhammetalisongur/KeyBot/releases) sayfasından en son sürümü indirin.
+
+**Kurulum Adımları:**
+1. `KeyBot.exe` dosyasını indirin (~150 MB)
+2. İstediğiniz bir klasöre koyun (örnek: `C:\Program Files\KeyBot\`)
+3. Çift tıklayarak çalıştırın
+4. Tüm gereksinimler dahil - ek kurulum gerekmez
+
+**Not**: Antivirüs yazılımı uyarı verebilir, güvenli listesine ekleyin.
+
 ### Kaynak Koddan Derleme
 ```powershell
 git clone https://github.com/muhammetalisongur/KeyBot.git
@@ -61,7 +72,7 @@ dotnet run
 
 ### Executable Oluşturma
 ```powershell
-dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
+dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o ./publish
 ```
 
 ## Kullanım

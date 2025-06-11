@@ -12,9 +12,10 @@
     <AssemblyDescription>Windows için geliştirilmiş profesyonel tuş otomasyonu uygulaması</AssemblyDescription>
     <AssemblyCompany>KeyBot Development</AssemblyCompany>
     <AssemblyCopyright>Copyright © 2024 KeyBot Development</AssemblyCopyright>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
     <StartupObject>KeyBot.Program</StartupObject>
+    <ApplicationIcon>Resources\keyboard.ico</ApplicationIcon>
   </PropertyGroup>
 
 </Project> 
