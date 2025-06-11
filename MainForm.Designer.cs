@@ -29,6 +29,10 @@ namespace KeyBot
         private Label statusLabel;
         private ProgressBar progressBar;
         private Label developerLabel;
+        private ToolTip keySequenceToolTip;
+        private Button captureKeyButton;
+        private Button captureMouseButton;
+        private ToolTip captureToolTip;
 
         protected override void Dispose(bool disposing)
         {
@@ -41,9 +45,12 @@ namespace KeyBot
 
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             keyGroup = new GroupBox();
             multiKeyGroup = new GroupBox();
+            captureMouseButton = new Button();
+            captureKeyButton = new Button();
             keyDelayLabel = new Label();
             keyDelayNumeric = new NumericUpDown();
             newKeyComboBox = new ComboBox();
@@ -68,6 +75,8 @@ namespace KeyBot
             statusLabel = new Label();
             progressBar = new ProgressBar();
             developerLabel = new Label();
+            keySequenceToolTip = new ToolTip(components);
+            captureToolTip = new ToolTip(components);
             keyGroup.SuspendLayout();
             multiKeyGroup.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)keyDelayNumeric).BeginInit();
@@ -96,6 +105,8 @@ namespace KeyBot
             // 
             // multiKeyGroup
             // 
+            multiKeyGroup.Controls.Add(captureMouseButton);
+            multiKeyGroup.Controls.Add(captureKeyButton);
             multiKeyGroup.Controls.Add(keyDelayLabel);
             multiKeyGroup.Controls.Add(keyDelayNumeric);
             multiKeyGroup.Controls.Add(newKeyComboBox);
@@ -110,6 +121,32 @@ namespace KeyBot
             multiKeyGroup.TabIndex = 4;
             multiKeyGroup.TabStop = false;
             multiKeyGroup.Text = "İşlem Dizisi";
+            // 
+            // captureMouseButton
+            // 
+            captureMouseButton.BackColor = Color.LightYellow;
+            captureMouseButton.Cursor = Cursors.Hand;
+            captureMouseButton.Location = new Point(394, 140);
+            captureMouseButton.Name = "captureMouseButton";
+            captureMouseButton.Size = new Size(56, 35);
+            captureMouseButton.TabIndex = 8;
+            captureMouseButton.Text = "🖱️";
+            captureToolTip.SetToolTip(captureMouseButton, "Fareyi tıklayın veya çevirin");
+            captureMouseButton.UseVisualStyleBackColor = false;
+            captureMouseButton.Click += CaptureMouseButton_Click;
+            // 
+            // captureKeyButton
+            // 
+            captureKeyButton.BackColor = Color.LightBlue;
+            captureKeyButton.Cursor = Cursors.Hand;
+            captureKeyButton.Location = new Point(330, 140);
+            captureKeyButton.Name = "captureKeyButton";
+            captureKeyButton.Size = new Size(56, 35);
+            captureKeyButton.TabIndex = 7;
+            captureKeyButton.Text = "⌨️";
+            captureToolTip.SetToolTip(captureKeyButton, "Klavyeden herhangi bir tuşa basın");
+            captureKeyButton.UseVisualStyleBackColor = false;
+            captureKeyButton.Click += CaptureKeyButton_Click;
             // 
             // keyDelayLabel
             // 
@@ -177,11 +214,18 @@ namespace KeyBot
             // 
             // keySequenceList
             // 
+            keySequenceList.AllowDrop = true;
             keySequenceList.FormattingEnabled = true;
             keySequenceList.Location = new Point(20, 30);
             keySequenceList.Name = "keySequenceList";
             keySequenceList.Size = new Size(200, 124);
             keySequenceList.TabIndex = 0;
+            keySequenceToolTip.SetToolTip(keySequenceList, "Öğeleri sürükleyerek sırasını değiştirebilirsiniz");
+            keySequenceList.DragDrop += KeySequenceList_DragDrop;
+            keySequenceList.DragEnter += KeySequenceList_DragEnter;
+            keySequenceList.DragOver += KeySequenceList_DragOver;
+            keySequenceList.MouseDown += KeySequenceList_MouseDown;
+            keySequenceList.MouseMove += KeySequenceList_MouseMove;
             // 
             // multiKeyRadio
             // 
@@ -193,6 +237,7 @@ namespace KeyBot
             multiKeyRadio.TabIndex = 3;
             multiKeyRadio.Text = "Çoklu İşlem";
             multiKeyRadio.UseVisualStyleBackColor = true;
+            multiKeyRadio.CheckedChanged += MultiKeyRadio_CheckedChanged;
             // 
             // mouseRadio
             // 
@@ -225,7 +270,7 @@ namespace KeyBot
             keyComboBox.Cursor = Cursors.Hand;
             keyComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
             keyComboBox.FormattingEnabled = true;
-            keyComboBox.Items.AddRange(new object[] { "Space", "Enter", "Tab", "Escape", "Backspace", "Delete", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "Left", "Right", "Up", "Down", "--- FARE İŞLEMLERİ ---", "Sol Tık", "Sağ Tık", "Orta Tık", "Tekerlek Yukarı", "Tekerlek Aşağı", "Çift Tık" });
+            keyComboBox.Items.AddRange(new object[] { "Space", "Enter", "Tab", "Escape", "Backspace", "Delete", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "Left", "Right", "Up", "Down" });
             keyComboBox.Location = new Point(160, 36);
             keyComboBox.Margin = new Padding(3, 4, 3, 4);
             keyComboBox.Name = "keyComboBox";
@@ -355,7 +400,8 @@ namespace KeyBot
             // statusLabel
             // 
             statusLabel.AutoSize = true;
-            statusLabel.Location = new Point(297, 566);
+            statusLabel.Location = new Point(280, 555);
+            statusLabel.MaximumSize = new Size(250, 500);
             statusLabel.Name = "statusLabel";
             statusLabel.Size = new Size(44, 20);
             statusLabel.TabIndex = 4;
@@ -381,6 +427,18 @@ namespace KeyBot
             developerLabel.TabIndex = 6;
             developerLabel.Text = "Developed by: Muhammet Ali Songur | muhammetalisongur.com";
             developerLabel.Click += DeveloperLabel_Click;
+            // 
+            // keySequenceToolTip
+            // 
+            keySequenceToolTip.AutoPopDelay = 5000;
+            keySequenceToolTip.InitialDelay = 1000;
+            keySequenceToolTip.ReshowDelay = 500;
+            // 
+            // captureToolTip
+            // 
+            captureToolTip.AutoPopDelay = 10000;
+            captureToolTip.InitialDelay = 500;
+            captureToolTip.ReshowDelay = 100;
             // 
             // MainForm
             // 

@@ -11,12 +11,22 @@ KeyBot, Windows işletim sistemi için geliştirilmiş kullanıcı dostu bir tu�
 - **Alfanumerik**: A-Z harfleri, 0-9 rakamları
 - **Fonksiyon Tuşları**: F1-F12
 - **Navigasyon**: Yön tuşları (↑, ↓, ←, →)
-- **Fare İşlemleri**: Sol tık, sağ tık, orta tık, tekerlek yukarı/aşağı, çift tık
+- **Modifier Tuşları**: Ctrl, Shift, Alt, Windows
+- **NumPad**: Sayı tuş takımı tuşları
+- **Fare İşlemleri**: Sol tık, sağ tık, orta tık, tekerlek yukarı/aşağı, çift tık, ekstra fare düğmeleri
+
+### Gelişmiş Yakalama Sistemi
+- **Gerçek Zamanlı Tuş Yakalama**: ⌨️ butonu ile tüm klavye tuşlarını anında yakala
+- **Gerçek Zamanlı Fare Yakalama**: 🖱️ butonu ile tüm fare işlemlerini anında yakala
+- **Özel İsimlendirme**: Bilinmeyen tuşlar için özel isimler belirleme
+- **Vazgeçme Modu**: Yakalama sırasında iptal etme seçeneği
+- **Akıllı Algılama**: 100+ tuş ve fare işlemi desteği
 
 ### Gelişmiş Kontroller
 - **Tek İşlem Modu**: Seçilen tuş veya fare işlemini belirli aralıklarla gerçekleştir
 - **Fare Modu**: Özel fare işlemi modu
 - **Çoklu İşlem Modu**: Tuş ve fare işlemlerini karıştırarak özel diziler oluştur
+- **Drag & Drop Sıralama**: Çoklu işlem modunda öğeleri sürükleyerek yeniden sıralama
 - **Hassas Zamanlama**: 0.1 - 60.0 saniye arası aralık ayarı
 - **Tekrar Kontrolü**: 1-1000 arası belirli tekrar veya sınırsız mod
 - **Geri Sayım**: 3 saniye sesli geri sayım ile güvenli başlatma
@@ -29,6 +39,8 @@ KeyBot, Windows işletim sistemi için geliştirilmiş kullanıcı dostu bir tu�
 - İlerleme çubuğu
 - Hand cursor ile tıklanabilir alanların belirtilmesi
 - Sesli uyarılar ve geri bildirimler
+- Tooltip sistemi ile kullanım ipuçları
+- Görsel geri bildirim (yakalama sırasında renk değişimi)
 
 ## Sistem Gereksinimleri
 
@@ -57,12 +69,29 @@ dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
 ### Temel Kullanım
 1. **Mod Seçimi**: Mod seçin (tek işlem, fare veya çoklu işlem)
 2. **İşlem Seçimi**: Tuş veya fare işlemi seçin
+   - Manuel seçim yapın VEYA
+   - ⌨️/🖱️ butonları ile gerçek zamanlı yakalama yapın
 3. **Zaman Ayarları**: Aralık ve tekrar sayısını belirleyin
 4. **Başlatma**: Başlat butonuna tıklayın
    - 3 saniye sesli geri sayım başlar
    - Bu süre içinde hedef uygulamaya geçiş yapın (Alt+Tab)
    - Otomasyon otomatik olarak başlar
 5. **Durdurma**: İstediğiniz zaman durdur butonuna tıklayın
+
+### Gerçek Zamanlı Yakalama
+#### Tuş Yakalama
+1. ⌨️ butonuna tıklayın
+2. Buton "Vazgeç" moduna geçer ve turuncu renk alır
+3. Yakalamak istediğiniz klavye tuşuna basın
+4. Tuş otomatik olarak listeye eklenir
+5. Bilinmeyen tuşlar için özel isim belirleyebilirsiniz
+
+#### Fare Yakalama
+1. 🖱️ butonuna tıklayın
+2. Buton "Vazgeç" moduna geçer ve turuncu renk alır
+3. Yakalamak istediğiniz fare işlemini yapın
+4. **Not**: Sadece 🖱️ butonu dışındaki alanlar yakalanır
+5. İşlem otomatik olarak listeye eklenir
 
 ### Hedef Uygulama Seçimi
 **Önemli**: KeyBot tuş komutlarını aktif pencereye gönderir. Bu nedenle:
@@ -85,6 +114,7 @@ dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
 - Çoklu işlem modunu seçin
 - İşlem listesine tuş veya fare işlemleri ekleyin
 - Her işlem için ayrı gecikme süresi ayarlayın
+- **Drag & Drop**: Öğeleri fare ile sürükleyerek sırasını değiştirin
 - İşlem sırasını istediğiniz gibi düzenleyin
 - **Karma Diziler**: Tuş basma + fare tıklama + tekerlek kaydırma kombinasyonları oluşturun
 

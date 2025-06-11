@@ -12,12 +12,12 @@
       "Delay": 0.5
     },
     {
-      "KeyName": "Enter",
-      "Delay": 0.5
+      "KeyName": "Sol T\u0131k",
+      "Delay": 0.8
     },
     {
-      "KeyName": "Backspace",
-      "Delay": 0.5
+      "KeyName": "Space",
+      "Delay": 0.8
     }
   ]
 }

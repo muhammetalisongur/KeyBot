@@ -13,6 +13,8 @@ namespace KeyBot
 {
     public partial class MainForm : Form
     {
+        #region DLL Imports ve Constants
+
         [DllImport("user32.dll")]
         static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, uint dwExtraInfo);
 
@@ -43,6 +45,10 @@ namespace KeyBot
         const uint MOUSEEVENTF_MIDDLEUP = 0x0040;
         const uint MOUSEEVENTF_WHEEL = 0x0800;
 
+        #endregion
+
+        #region Private Fields
+
         private System.Windows.Forms.Timer? automationTimer;
         private System.Windows.Forms.Timer? countdownTimer;
         private int currentRepeatCount = 0;
@@ -52,14 +58,25 @@ namespace KeyBot
         private int currentKeyIndex = 0;
         private int countdownSeconds = 0;
         private const string SettingsFileName = "KeyBot_Settings.json";
+        private int draggedItemIndex = -1;
+        private bool isDragging = false;
+        private bool isCapturingKey = false;
+        private bool isCapturingMouse = false;
+
+        #endregion
+
+        #region Constructor ve Form Events
 
         public MainForm()
         {
             InitializeComponent();
             
-            // Ayarları yükle
             LoadSettings();
         }
+
+        #endregion
+
+        #region UI Event Handlers
 
         private void InfiniteCheckBox_CheckedChanged(object sender, EventArgs e)
         {
@@ -87,12 +104,7 @@ namespace KeyBot
                     return;
                 }
                 
-                string selectedKey = keyComboBox.SelectedItem.ToString()!;
-                if (selectedKey == "--- FARE İŞLEMLERİ ---")
-                {
-                    MessageBox.Show("Lütfen geçerli bir tuş veya fare işlemi seçin!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
+                // Klavye işlemi seçili - sadece klavye tuşları mevcut
             }
             // Fare modu kontrolü
             else if (mouseRadio.Checked)
@@ -202,18 +214,6 @@ namespace KeyBot
                     {
                         currentKeyIndex = 0;
                         currentRepeatCount++;
-                    }
-
-                    // Sonraki tuş için delay ayarla
-                    if (currentKeyIndex < keySequence.Count && automationTimer != null)
-                    {
-                        var nextKey = keySequence[currentKeyIndex];
-                        automationTimer.Interval = (int)(nextKey.Delay * 1000);
-                    }
-                    else if (automationTimer != null)
-                    {
-                        // Döngü tamamlandı, ana interval'e dön
-                        automationTimer.Interval = (int)(intervalNumeric.Value * 1000);
                     }
 
                     if (isInfinite)
@@ -423,6 +423,11 @@ namespace KeyBot
             UpdateUIStates();
         }
 
+        private void MultiKeyRadio_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateUIStates();
+        }
+
         private void AddKeyButton_Click(object sender, EventArgs e)
         {
             if (newKeyComboBox.SelectedItem != null)
@@ -466,6 +471,10 @@ namespace KeyBot
             keySequenceList.Items.Clear();
         }
 
+        #endregion
+
+        #region Settings Management
+
         private void LoadSettings()
         {
             try
@@ -477,23 +486,20 @@ namespace KeyBot
                     
                     if (settings != null)
                     {
-                        // UI elemanlarını ayarlara göre güncelle
                         singleKeyRadio.Checked = settings.IsSingleKeyMode;
                         mouseRadio.Checked = settings.IsMouseMode;
                         multiKeyRadio.Checked = !settings.IsSingleKeyMode && !settings.IsMouseMode;
                         
-                        // ComboBox'lar için index bulma
                         for (int i = 0; i < keyComboBox.Items.Count; i++)
                         {
                             if (keyComboBox.Items[i]?.ToString() == settings.SelectedKey)
                             {
                                 keyComboBox.SelectedIndex = i;
-                                newKeyComboBox.SelectedIndex = i; // Çoklu tuş ComboBox'ı da aynı tuşa ayarla
+                                newKeyComboBox.SelectedIndex = i;
                                 break;
                             }
                         }
                         
-                        // Fare ComboBox için index bulma
                         for (int i = 0; i < mouseComboBox.Items.Count; i++)
                         {
                             if (mouseComboBox.Items[i]?.ToString() == settings.SelectedMouse)
@@ -507,7 +513,6 @@ namespace KeyBot
                         repeatNumeric.Value = settings.RepeatCount;
                         infiniteCheckBox.Checked = settings.IsInfinite;
                         
-                        // Çoklu tuş dizisini yükle
                         keySequence.Clear();
                         keySequenceList.Items.Clear();
                         foreach (var item in settings.KeySequence)
@@ -516,7 +521,6 @@ namespace KeyBot
                             keySequenceList.Items.Add(item);
                         }
                         
-                        // UI durumunu güncelle
                         UpdateUIStates();
                     }
                 }
@@ -531,7 +535,6 @@ namespace KeyBot
             }
             catch
             {
-                // Hata durumunda varsayılan değerler
                 keyComboBox.SelectedIndex = 0;
                 newKeyComboBox.SelectedIndex = 0;
                 mouseComboBox.SelectedIndex = 0;
@@ -565,11 +568,13 @@ namespace KeyBot
                 string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(SettingsFileName, json);
             }
-            catch
-            {
-                // Kaydetme hatası durumunda sessizce devam et
-            }
+            catch{}
+            
         }
+
+        #endregion
+
+        #region Utility Methods
 
         private void UpdateUIStates()
         {
@@ -608,7 +613,565 @@ namespace KeyBot
             SaveSettings();
             base.OnFormClosing(e);
         }
+
+        private bool IsPointOverCaptureButtons(Point location)
+        {
+            // Sadece captureMouseButton kontrolü yap (kullanıcı isteği)
+            Rectangle mouseButtonBounds = new Rectangle(
+                captureMouseButton.Location.X + multiKeyGroup.Location.X,
+                captureMouseButton.Location.Y + multiKeyGroup.Location.Y,
+                captureMouseButton.Width,
+                captureMouseButton.Height
+            );
+
+            // Tıklama noktası sadece captureMouseButton üzerinde mi?
+            return mouseButtonBounds.Contains(location);
+        }
+
+        #endregion
+
+        #region Tuş Yakalama İşlemleri
+
+        private void CaptureKeyButton_Click(object sender, EventArgs e)
+        {
+            if (!isCapturingKey)
+            {
+                // Yakalama modunu başlat
+                isCapturingKey = true;
+                captureKeyButton.Text = "Vazgeç";
+                captureKeyButton.BackColor = Color.Orange;
+                this.KeyPreview = true;
+                this.Focus();
+                
+                captureToolTip.SetToolTip(captureKeyButton, "Tekrar tıklayarak vazgeçebilirsiniz");
+                
+                statusLabel.Text = "Tuş yakalama modu aktif - klavyeden bir tuşa basın (Vazgeçmek için butona tekrar tıklayın)";
+            }
+            else
+            {
+                EndKeyCapture();
+                statusLabel.Text = "Tuş yakalama iptal edildi";
+            }
+        }
+
+        private void CaptureMouseButton_Click(object sender, EventArgs e)
+        {
+            if (!isCapturingMouse)
+            {
+                isCapturingMouse = true;
+                captureMouseButton.Text = "Vazgeç";
+                captureMouseButton.BackColor = Color.Orange;
+                
+                captureToolTip.SetToolTip(captureMouseButton, "Tekrar tıklayarak vazgeçebilirsiniz");
+                
+                statusLabel.Text = "Fare yakalama modu aktif - fareyi tıklayın (Vazgeçmek için butona tekrar tıklayın)";
+            }
+            else
+            {
+                EndMouseCapture();
+                statusLabel.Text = "Fare yakalama iptal edildi";
+            }
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (isCapturingKey)
+            {
+                string keyName = ConvertKeyToString(keyData);
+                if (!string.IsNullOrEmpty(keyName))
+                {
+                    AddCapturedKeyToComboBoxes(keyName);
+                    
+                    EndKeyCapture();
+                    
+                    statusLabel.Text = $"Tuş yakalandı: {keyName}";
+                    return true;
+                }
+            }
+            
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        protected override void OnMouseClick(MouseEventArgs e)
+        {
+            if (isCapturingMouse)
+            {
+                // Capture butonları üzerinde mi kontrol et
+                if (IsPointOverCaptureButtons(e.Location))
+                {
+                    // Capture butonları üzerindeyse fare yakalama yapma, sadece buton işlevini çalıştır
+                    base.OnMouseClick(e);
+                    return;
+                }
+
+                string mouseAction = ConvertMouseToString(e.Button);
+                if (!string.IsNullOrEmpty(mouseAction))
+                {
+                    AddCapturedMouseToComboBoxes(mouseAction);
+                    
+                    EndMouseCapture();
+                    
+                    statusLabel.Text = $"Fare işlemi yakalandı: {mouseAction}";
+                    return;
+                }
+            }
+            
+            base.OnMouseClick(e);
+        }
+
+        protected override void OnMouseDoubleClick(MouseEventArgs e)
+        {
+            if (isCapturingMouse)
+            {
+                // Capture butonları üzerinde mi kontrol et
+                if (IsPointOverCaptureButtons(e.Location))
+                {
+                    base.OnMouseDoubleClick(e);
+                    return;
+                }
+
+                string mouseAction = "Çift Tık";
+                
+                AddCapturedMouseToComboBoxes(mouseAction);
+                
+                EndMouseCapture();
+                
+                statusLabel.Text = $"Fare işlemi yakalandı: {mouseAction}";
+                return;
+            }
+            
+            base.OnMouseDoubleClick(e);
+        }
+
+        protected override void OnMouseWheel(MouseEventArgs e)
+        {
+            if (isCapturingMouse)
+            {
+                // Capture butonları üzerinde mi kontrol et
+                if (IsPointOverCaptureButtons(e.Location))
+                {
+                    base.OnMouseWheel(e);
+                    return;
+                }
+
+                string mouseAction = e.Delta > 0 ? "Tekerlek Yukarı" : "Tekerlek Aşağı";
+                
+                AddCapturedMouseToComboBoxes(mouseAction);
+                
+                EndMouseCapture();
+                
+                statusLabel.Text = $"Fare işlemi yakalandı: {mouseAction}";
+                return;
+            }
+            
+            base.OnMouseWheel(e);
+        }
+
+        private string ConvertKeyToString(Keys key)
+        {
+            // Özel tuşlar için dönüşüm
+            switch (key)
+            {
+                // Temel tuşlar
+                case Keys.Space: return "Space";
+                case Keys.Enter: return "Enter";
+                case Keys.Tab: return "Tab";
+                case Keys.Escape: return "Escape";
+                case Keys.Back: return "Backspace";
+                case Keys.Delete: return "Delete";
+                
+                // Ok tuşları
+                case Keys.Left: return "Left";
+                case Keys.Right: return "Right";
+                case Keys.Up: return "Up";
+                case Keys.Down: return "Down";
+                
+                // Fonksiyon tuşları
+                case Keys.F1: return "F1";
+                case Keys.F2: return "F2";
+                case Keys.F3: return "F3";
+                case Keys.F4: return "F4";
+                case Keys.F5: return "F5";
+                case Keys.F6: return "F6";
+                case Keys.F7: return "F7";
+                case Keys.F8: return "F8";
+                case Keys.F9: return "F9";
+                case Keys.F10: return "F10";
+                case Keys.F11: return "F11";
+                case Keys.F12: return "F12";
+                
+                // Modifier tuşları
+                case Keys.LControlKey:
+                case Keys.RControlKey:
+                case Keys.Control: return "Ctrl";
+                case Keys.LShiftKey:
+                case Keys.RShiftKey:
+                case Keys.Shift: return "Shift";
+                case Keys.LMenu:
+                case Keys.RMenu:
+                case Keys.Alt: return "Alt";
+                case Keys.LWin:
+                case Keys.RWin: return "Windows";
+                
+                // Sayı tuş takımı
+                case Keys.NumPad0: return "NumPad0";
+                case Keys.NumPad1: return "NumPad1";
+                case Keys.NumPad2: return "NumPad2";
+                case Keys.NumPad3: return "NumPad3";
+                case Keys.NumPad4: return "NumPad4";
+                case Keys.NumPad5: return "NumPad5";
+                case Keys.NumPad6: return "NumPad6";
+                case Keys.NumPad7: return "NumPad7";
+                case Keys.NumPad8: return "NumPad8";
+                case Keys.NumPad9: return "NumPad9";
+                case Keys.Add: return "NumPad+";
+                case Keys.Subtract: return "NumPad-";
+                case Keys.Multiply: return "NumPad*";
+                case Keys.Divide: return "NumPad/";
+                case Keys.Decimal: return "NumPad.";
+                case Keys.NumLock: return "NumLock";
+                
+                // Diğer özel tuşlar
+                case Keys.Home: return "Home";
+                case Keys.End: return "End";
+                case Keys.PageUp: return "PageUp";
+                case Keys.PageDown: return "PageDown";
+                case Keys.Insert: return "Insert";
+                case Keys.Pause: return "Pause";
+                case Keys.PrintScreen: return "PrintScreen";
+                case Keys.CapsLock: return "CapsLock";
+                case Keys.Scroll: return "ScrollLock";
+                
+                // Noktalama işaretleri
+                case Keys.OemSemicolon: return ";";
+                case Keys.Oemplus: return "+";
+                case Keys.Oemcomma: return ",";
+                case Keys.OemMinus: return "-";
+                case Keys.OemPeriod: return ".";
+                case Keys.OemQuestion: return "/";
+                case Keys.Oemtilde: return "`";
+                case Keys.OemOpenBrackets: return "[";
+                case Keys.OemPipe: return "\\";
+                case Keys.OemCloseBrackets: return "]";
+                case Keys.OemQuotes: return "'";
+                
+                default:
+                    // Harf ve rakam tuşları
+                    if (key >= Keys.A && key <= Keys.Z)
+                    {
+                        return key.ToString();
+                    }
+                    if (key >= Keys.D0 && key <= Keys.D9)
+                    {
+                        return key.ToString().Replace("D", ""); // D0-D9 -> 0-9
+                    }
+                    
+                    // Bilinmeyen tuş - otomatik isim oluştur
+                    return GenerateCustomKeyName(key.ToString());
+            }
+        }
+
+        private string ConvertMouseToString(MouseButtons button)
+        {
+            switch (button)
+            {
+                case MouseButtons.Left: return "Sol Tık";
+                case MouseButtons.Right: return "Sağ Tık";
+                case MouseButtons.Middle: return "Orta Tık";
+                case MouseButtons.XButton1: return "Fare Tuş 4";
+                case MouseButtons.XButton2: return "Fare Tuş 5";
+                default: 
+                    // Bilinmeyen fare düğmesi - otomatik isim oluştur
+                    return GenerateCustomMouseName(button.ToString());
+            }
+        }
+
+        private string GenerateCustomKeyName(string originalKeyName)
+        {
+            // Özel tuş isimlendirme sistemi
+            string baseName = $"Özel Tuş ({originalKeyName})";
+            
+            // Kullanıcıdan isim al
+            string? customName = PromptForCustomName("Yeni Klavye Tuşu", baseName, 
+                $"Yakalanan tuş: {originalKeyName}\n\nBu tuş için özel bir isim girin:");
+                
+            return customName ?? baseName;
+        }
+
+        private string GenerateCustomMouseName(string originalMouseName)
+        {
+            // Özel fare işlemi isimlendirme sistemi
+            string baseName = $"Özel Fare ({originalMouseName})";
+            
+            // Kullanıcıdan isim al
+            string? customName = PromptForCustomName("Yeni Fare İşlemi", baseName,
+                $"Yakalanan fare işlemi: {originalMouseName}\n\nBu işlem için özel bir isim girin:");
+                
+            return customName ?? baseName;
+        }
+
+        private string? PromptForCustomName(string title, string defaultName, string message)
+        {
+            using (var form = new Form())
+            {
+                form.Text = title;
+                form.Size = new Size(400, 200);
+                form.StartPosition = FormStartPosition.CenterParent;
+                form.FormBorderStyle = FormBorderStyle.FixedDialog;
+                form.MaximizeBox = false;
+                form.MinimizeBox = false;
+
+                var label = new Label()
+                {
+                    Text = message,
+                    Location = new Point(10, 10),
+                    Size = new Size(360, 60),
+                    AutoSize = false
+                };
+
+                var textBox = new TextBox()
+                {
+                    Text = defaultName,
+                    Location = new Point(10, 80),
+                    Size = new Size(360, 25)
+                };
+
+                var okButton = new Button()
+                {
+                    Text = "Tamam",
+                    Location = new Point(220, 120),
+                    Size = new Size(75, 25),
+                    DialogResult = DialogResult.OK
+                };
+
+                var cancelButton = new Button()
+                {
+                    Text = "İptal",
+                    Location = new Point(305, 120),
+                    Size = new Size(75, 25),
+                    DialogResult = DialogResult.Cancel
+                };
+
+                form.Controls.Add(label);
+                form.Controls.Add(textBox);
+                form.Controls.Add(okButton);
+                form.Controls.Add(cancelButton);
+
+                form.AcceptButton = okButton;
+                form.CancelButton = cancelButton;
+
+                textBox.Focus();
+                textBox.SelectAll();
+
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    string result = textBox.Text.Trim();
+                    return string.IsNullOrEmpty(result) ? defaultName : result;
+                }
+
+                return null;
+            }
+        }
+
+        private void AddCapturedKeyToComboBoxes(string keyName)
+        {
+            // Mevcut ComboBox'larda bu tuş zaten var mı kontrol et
+            bool existsInKeyCombo = ComboBoxContainsItem(keyComboBox, keyName);
+            bool existsInNewKeyCombo = ComboBoxContainsItem(newKeyComboBox, keyName);
+            
+            // Eğer mevcut değilse en üste ekle
+            if (!existsInKeyCombo)
+            {
+                keyComboBox.Items.Insert(0, keyName);
+                statusLabel.Text = $"Yeni tuş eklendi: {keyName}";
+            }
+            else
+            {
+                statusLabel.Text = $"Mevcut tuş seçildi: {keyName}";
+            }
+            
+            if (!existsInNewKeyCombo)
+            {
+                newKeyComboBox.Items.Insert(0, keyName);
+            }
+            
+            // Yeni eklenen/bulunan tuşu seç
+            keyComboBox.SelectedItem = keyName;
+            newKeyComboBox.SelectedItem = keyName;
+        }
+
+        private void AddCapturedMouseToComboBoxes(string mouseAction)
+        {
+            // Mouse ComboBox'da bu işlem zaten var mı kontrol et
+            bool existsInMouseCombo = ComboBoxContainsItem(mouseComboBox, mouseAction);
+            bool existsInNewKeyCombo = ComboBoxContainsItem(newKeyComboBox, mouseAction);
+            
+            // Eğer mevcut değilse en üste ekle
+            if (!existsInMouseCombo)
+            {
+                mouseComboBox.Items.Insert(0, mouseAction);
+                statusLabel.Text = $"Yeni fare işlemi eklendi: {mouseAction}";
+            }
+            else
+            {
+                statusLabel.Text = $"Mevcut fare işlemi seçildi: {mouseAction}";
+            }
+            
+            // NewKeyComboBox'a da fare işlemlerini ekle (çünkü çoklu tuş modunda kullanılıyor)
+            if (!existsInNewKeyCombo)
+            {
+                newKeyComboBox.Items.Insert(0, mouseAction);
+            }
+            
+            // Yeni eklenen/bulunan işlemi seç
+            mouseComboBox.SelectedItem = mouseAction;
+            newKeyComboBox.SelectedItem = mouseAction;
+        }
+
+        private bool ComboBoxContainsItem(ComboBox comboBox, string item)
+        {
+            foreach (var existingItem in comboBox.Items)
+            {
+                if (existingItem?.ToString() == item)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void EndKeyCapture()
+        {
+            isCapturingKey = false;
+            captureKeyButton.Text = "⌨️ Tuş";
+            captureKeyButton.BackColor = Color.LightBlue;
+            this.KeyPreview = false;
+            
+            // Tooltip'i geri al
+            captureToolTip.SetToolTip(captureKeyButton, "Klavyeden herhangi bir tuşa basın");
+        }
+
+        private void EndMouseCapture()
+        {
+            isCapturingMouse = false;
+            captureMouseButton.Text = "🖱️ Fare";
+            captureMouseButton.BackColor = Color.LightYellow;
+            
+            // Tooltip'i geri al
+            captureToolTip.SetToolTip(captureMouseButton, "Fareyi tıklayın veya çevirin");
+        }
+
+        #endregion
+
+        #region Drag & Drop İşlemleri
+
+        private void KeySequenceList_MouseDown(object? sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left && keySequenceList.Items.Count > 0)
+            {
+                int index = keySequenceList.IndexFromPoint(e.Location);
+                if (index >= 0)
+                {
+                    draggedItemIndex = index;
+                    isDragging = true;
+                    keySequenceList.Cursor = Cursors.SizeAll;
+                }
+            }
+        }
+
+        private void KeySequenceList_MouseMove(object? sender, MouseEventArgs e)
+        {
+            if (isDragging && e.Button == MouseButtons.Left && draggedItemIndex >= 0)
+            {
+                keySequenceList.DoDragDrop(keySequenceList.Items[draggedItemIndex], DragDropEffects.Move);
+                isDragging = false;
+                keySequenceList.Cursor = Cursors.Default;
+            }
+            else if (!isDragging)
+            {
+                // Fare bir öğenin üzerindeyse cursor değiştir
+                int index = keySequenceList.IndexFromPoint(e.Location);
+                if (index >= 0)
+                {
+                    keySequenceList.Cursor = Cursors.SizeAll;
+                }
+                else
+                {
+                    keySequenceList.Cursor = Cursors.Default;
+                }
+            }
+        }
+
+        private void KeySequenceList_DragEnter(object? sender, DragEventArgs e)
+        {
+            if (e.Data!.GetDataPresent(typeof(KeySequenceItem)))
+            {
+                e.Effect = DragDropEffects.Move;
+            }
+            else
+            {
+                e.Effect = DragDropEffects.None;
+            }
+        }
+
+        private void KeySequenceList_DragOver(object? sender, DragEventArgs e)
+        {
+            if (e.Data!.GetDataPresent(typeof(KeySequenceItem)))
+            {
+                e.Effect = DragDropEffects.Move;
+                
+                // Drop konumunu vurgula
+                Point clientPoint = keySequenceList.PointToClient(new Point(e.X, e.Y));
+                int targetIndex = keySequenceList.IndexFromPoint(clientPoint);
+                
+                if (targetIndex >= 0)
+                {
+                    keySequenceList.SelectedIndex = targetIndex;
+                }
+            }
+            else
+            {
+                e.Effect = DragDropEffects.None;
+            }
+        }
+
+        private void KeySequenceList_DragDrop(object? sender, DragEventArgs e)
+        {
+            if (e.Data!.GetDataPresent(typeof(KeySequenceItem)) && draggedItemIndex >= 0)
+            {
+                Point clientPoint = keySequenceList.PointToClient(new Point(e.X, e.Y));
+                int targetIndex = keySequenceList.IndexFromPoint(clientPoint);
+                
+                if (targetIndex >= 0 && targetIndex != draggedItemIndex)
+                {
+                    // Öğeyi yeni konuma taşı
+                    var draggedItem = keySequence[draggedItemIndex];
+                    
+                    // Önce orijinal konumdan kaldır
+                    keySequence.RemoveAt(draggedItemIndex);
+                    keySequenceList.Items.RemoveAt(draggedItemIndex);
+                    
+                    // Index ayarlaması (eğer hedef index dragged item'dan büyükse 1 azalt)
+                    if (targetIndex > draggedItemIndex)
+                    {
+                        targetIndex--;
+                    }
+                    
+                    // Yeni konuma ekle
+                    keySequence.Insert(targetIndex, draggedItem);
+                    keySequenceList.Items.Insert(targetIndex, draggedItem);
+                    
+                    // Yeni konumu seç
+                    keySequenceList.SelectedIndex = targetIndex;
+                }
+            }
+            
+            // Sürükleme işlemini bitir
+            draggedItemIndex = -1;
+            isDragging = false;
+            keySequenceList.Cursor = Cursors.Default;
+        }
+
+        #endregion
     }
-
-
 } 
