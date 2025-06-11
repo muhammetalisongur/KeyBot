@@ -1,8 +1,23 @@
 {
   "IsSingleKeyMode": true,
-  "SelectedKey": "C",
+  "IsMouseMode": false,
+  "SelectedKey": "Space",
+  "SelectedMouse": "Sol T\u0131k",
   "Interval": 1.0,
   "RepeatCount": 10,
   "IsInfinite": false,
-  "KeySequence": []
+  "KeySequence": [
+    {
+      "KeyName": "Space",
+      "Delay": 0.5
+    },
+    {
+      "KeyName": "Enter",
+      "Delay": 0.5
+    },
+    {
+      "KeyName": "Backspace",
+      "Delay": 0.5
+    }
+  ]
 }

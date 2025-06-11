@@ -19,7 +19,29 @@ namespace KeyBot
         [DllImport("user32.dll")]
         static extern uint MapVirtualKey(uint uCode, uint uMapType);
 
+        [DllImport("user32.dll")]
+        static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint dwData, uint dwExtraInfo);
+
+        [DllImport("user32.dll")]
+        static extern bool GetCursorPos(out POINT lpPoint);
+
+        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+        public struct POINT
+        {
+            public int X;
+            public int Y;
+        }
+
         const int KEYEVENTF_KEYUP = 0x0002;
+        
+        // Mouse event constants
+        const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
+        const uint MOUSEEVENTF_LEFTUP = 0x0004;
+        const uint MOUSEEVENTF_RIGHTDOWN = 0x0008;
+        const uint MOUSEEVENTF_RIGHTUP = 0x0010;
+        const uint MOUSEEVENTF_MIDDLEDOWN = 0x0020;
+        const uint MOUSEEVENTF_MIDDLEUP = 0x0040;
+        const uint MOUSEEVENTF_WHEEL = 0x0800;
 
         private System.Windows.Forms.Timer? automationTimer;
         private System.Windows.Forms.Timer? countdownTimer;
@@ -61,12 +83,28 @@ namespace KeyBot
             {
                 if (keyComboBox.SelectedItem == null)
                 {
-                    MessageBox.Show("Lütfen bir tuş seçin!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Lütfen bir tuş veya fare işlemi seçin!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                
+                string selectedKey = keyComboBox.SelectedItem.ToString()!;
+                if (selectedKey == "--- FARE İŞLEMLERİ ---")
+                {
+                    MessageBox.Show("Lütfen geçerli bir tuş veya fare işlemi seçin!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+            }
+            // Fare modu kontrolü
+            else if (mouseRadio.Checked)
+            {
+                if (mouseComboBox.SelectedItem == null)
+                {
+                    MessageBox.Show("Lütfen bir fare işlemi seçin!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
             }
             // Çoklu tuş modu kontrolü  
-            else
+            else if (multiKeyRadio.Checked)
             {
                 if (keySequence.Count == 0)
                 {
@@ -131,7 +169,27 @@ namespace KeyBot
                     }
                 }
             }
-            else
+            else if (mouseRadio.Checked)
+            {
+                // Fare modu
+                var selectedMouse = mouseComboBox.SelectedItem?.ToString();
+                if (!string.IsNullOrEmpty(selectedMouse))
+                {
+                    SendMouseAction(selectedMouse);
+                    currentRepeatCount++;
+
+                    if (isInfinite)
+                    {
+                        statusLabel.Text = $"Sınırsız çalışıyor... ({currentRepeatCount}) - {selectedMouse}";
+                    }
+                    else
+                    {
+                        progressBar.Value = currentRepeatCount;
+                        statusLabel.Text = $"Çalışıyor... ({currentRepeatCount}/{targetRepeatCount}) - {selectedMouse}";
+                    }
+                }
+            }
+            else if (multiKeyRadio.Checked)
             {
                 // Çoklu tuş modu
                 if (keySequence.Count > 0)
@@ -254,6 +312,17 @@ namespace KeyBot
 
         private void SendKey(string keyName)
         {
+            // Fare işlemi kontrolü
+            if (keyName.Contains("Tık") || keyName.Contains("Tekerlek") || keyName == "--- FARE İŞLEMLERİ ---")
+            {
+                if (keyName != "--- FARE İŞLEMLERİ ---")
+                {
+                    SendMouseAction(keyName);
+                }
+                return;
+            }
+
+            // Klavye tuşu işlemi
             byte vkCode = GetVirtualKeyCode(keyName);
             if (vkCode != 0)
             {
@@ -261,6 +330,38 @@ namespace KeyBot
                 keybd_event(vkCode, (byte)MapVirtualKey(vkCode, 0), 0, 0);
                 // Tuşu bırak
                 keybd_event(vkCode, (byte)MapVirtualKey(vkCode, 0), KEYEVENTF_KEYUP, 0);
+            }
+        }
+
+        private void SendMouseAction(string mouseAction)
+        {
+            switch (mouseAction)
+            {
+                case "Sol Tık":
+                    mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+                    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                    break;
+                case "Sağ Tık":
+                    mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+                    mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+                    break;
+                case "Orta Tık":
+                    mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+                    mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+                    break;
+                case "Tekerlek Yukarı":
+                    mouse_event(MOUSEEVENTF_WHEEL, 0, 0, 120, 0);
+                    break;
+                case "Tekerlek Aşağı":
+                    mouse_event(MOUSEEVENTF_WHEEL, 0, 0, unchecked((uint)-120), 0);
+                    break;
+                case "Çift Tık":
+                    mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+                    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                    System.Threading.Thread.Sleep(50);
+                    mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+                    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                    break;
             }
         }
 
@@ -317,13 +418,27 @@ namespace KeyBot
             UpdateUIStates();
         }
 
+        private void MouseRadio_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateUIStates();
+        }
+
         private void AddKeyButton_Click(object sender, EventArgs e)
         {
             if (newKeyComboBox.SelectedItem != null)
             {
+                string selectedItem = newKeyComboBox.SelectedItem.ToString()!;
+                
+                // Ayırıcı metinleri engelle
+                if (selectedItem == "--- FARE İŞLEMLERİ ---")
+                {
+                    MessageBox.Show("Lütfen geçerli bir tuş veya fare işlemi seçin!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
                 var newItem = new KeySequenceItem
                 {
-                    KeyName = newKeyComboBox.SelectedItem.ToString()!,
+                    KeyName = selectedItem,
                     Delay = keyDelayNumeric.Value
                 };
                 
@@ -364,7 +479,8 @@ namespace KeyBot
                     {
                         // UI elemanlarını ayarlara göre güncelle
                         singleKeyRadio.Checked = settings.IsSingleKeyMode;
-                        multiKeyRadio.Checked = !settings.IsSingleKeyMode;
+                        mouseRadio.Checked = settings.IsMouseMode;
+                        multiKeyRadio.Checked = !settings.IsSingleKeyMode && !settings.IsMouseMode;
                         
                         // ComboBox'lar için index bulma
                         for (int i = 0; i < keyComboBox.Items.Count; i++)
@@ -373,6 +489,16 @@ namespace KeyBot
                             {
                                 keyComboBox.SelectedIndex = i;
                                 newKeyComboBox.SelectedIndex = i; // Çoklu tuş ComboBox'ı da aynı tuşa ayarla
+                                break;
+                            }
+                        }
+                        
+                        // Fare ComboBox için index bulma
+                        for (int i = 0; i < mouseComboBox.Items.Count; i++)
+                        {
+                            if (mouseComboBox.Items[i]?.ToString() == settings.SelectedMouse)
+                            {
+                                mouseComboBox.SelectedIndex = i;
                                 break;
                             }
                         }
@@ -399,6 +525,7 @@ namespace KeyBot
                     // İlk kez açılıyorsa varsayılan değerler
                     keyComboBox.SelectedIndex = 0; // Space
                     newKeyComboBox.SelectedIndex = 0; // Space
+                    mouseComboBox.SelectedIndex = 0; // Sol Tık
                     UpdateUIStates();
                 }
             }
@@ -407,6 +534,7 @@ namespace KeyBot
                 // Hata durumunda varsayılan değerler
                 keyComboBox.SelectedIndex = 0;
                 newKeyComboBox.SelectedIndex = 0;
+                mouseComboBox.SelectedIndex = 0;
                 UpdateUIStates();
             }
         }
@@ -420,10 +548,14 @@ namespace KeyBot
                     ? (keyComboBox.SelectedItem?.ToString() ?? "Space")
                     : (newKeyComboBox.SelectedItem?.ToString() ?? "Space");
 
+                string selectedMouse = mouseComboBox.SelectedItem?.ToString() ?? "Sol Tık";
+
                 var settings = new AppSettings
                 {
                     IsSingleKeyMode = singleKeyRadio.Checked,
+                    IsMouseMode = mouseRadio.Checked,
                     SelectedKey = selectedKey,
+                    SelectedMouse = selectedMouse,
                     Interval = intervalNumeric.Value,
                     RepeatCount = (int)repeatNumeric.Value,
                     IsInfinite = infiniteCheckBox.Checked,
@@ -442,12 +574,13 @@ namespace KeyBot
         private void UpdateUIStates()
         {
             keyComboBox.Enabled = singleKeyRadio.Checked;
-            multiKeyGroup.Enabled = !singleKeyRadio.Checked;
+            mouseComboBox.Enabled = mouseRadio.Checked;
+            multiKeyGroup.Enabled = multiKeyRadio.Checked;
         }
 
         private void SyncComboBoxSelections(string keyName)
         {
-            // Her iki ComboBox'ta da aynı tuşu seç
+            // Tüm ComboBox'larda aynı tuşu seç
             for (int i = 0; i < keyComboBox.Items.Count; i++)
             {
                 if (keyComboBox.Items[i]?.ToString() == keyName)
@@ -465,6 +598,8 @@ namespace KeyBot
                     break;
                 }
             }
+            
+            // Fare ComboBox için ayrı kontrol gerekmez çünkü farklı öğeler içerir
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)

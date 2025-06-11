@@ -6,15 +6,17 @@ KeyBot, Windows işletim sistemi için geliştirilmiş kullanıcı dostu bir tu�
 
 ## Özellikler
 
-### Tuş Desteği
+### Tuş ve Fare Desteği
 - **Özel Tuşlar**: Space, Enter, Tab, Escape, Backspace, Delete
 - **Alfanumerik**: A-Z harfleri, 0-9 rakamları
 - **Fonksiyon Tuşları**: F1-F12
 - **Navigasyon**: Yön tuşları (↑, ↓, ←, →)
+- **Fare İşlemleri**: Sol tık, sağ tık, orta tık, tekerlek yukarı/aşağı, çift tık
 
 ### Gelişmiş Kontroller
-- **Tek Tuş Modu**: Seçilen tuşu belirli aralıklarla bas
-- **Çoklu Tuş Modu**: Tuş dizisi oluştur ve her tuş için farklı gecikme ayarla
+- **Tek İşlem Modu**: Seçilen tuş veya fare işlemini belirli aralıklarla gerçekleştir
+- **Fare Modu**: Özel fare işlemi modu
+- **Çoklu İşlem Modu**: Tuş ve fare işlemlerini karıştırarak özel diziler oluştur
 - **Hassas Zamanlama**: 0.1 - 60.0 saniye arası aralık ayarı
 - **Tekrar Kontrolü**: 1-1000 arası belirli tekrar veya sınırsız mod
 - **Geri Sayım**: 3 saniye sesli geri sayım ile güvenli başlatma
@@ -53,13 +55,14 @@ dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
 ## Kullanım
 
 ### Temel Kullanım
-1. **Tuş Seçimi**: Mod seçin (tek tuş veya çoklu tuş)
-2. **Zaman Ayarları**: Aralık ve tekrar sayısını belirleyin
-3. **Başlatma**: Başlat butonuna tıklayın
+1. **Mod Seçimi**: Mod seçin (tek işlem, fare veya çoklu işlem)
+2. **İşlem Seçimi**: Tuş veya fare işlemi seçin
+3. **Zaman Ayarları**: Aralık ve tekrar sayısını belirleyin
+4. **Başlatma**: Başlat butonuna tıklayın
    - 3 saniye sesli geri sayım başlar
    - Bu süre içinde hedef uygulamaya geçiş yapın (Alt+Tab)
    - Otomasyon otomatik olarak başlar
-4. **Durdurma**: İstediğiniz zaman durdur butonuna tıklayın
+5. **Durdurma**: İstediğiniz zaman durdur butonuna tıklayın
 
 ### Hedef Uygulama Seçimi
 **Önemli**: KeyBot tuş komutlarını aktif pencereye gönderir. Bu nedenle:
@@ -68,17 +71,30 @@ dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
 - Veya fare ile hedef uygulamanın penceresine tıklayın
 - Otomasyon seçilen uygulamada çalışmaya başlar
 
-### Çoklu Tuş Modu
-- Çoklu tuş modunu seçin
-- Tuş listesine tuş ekleyin
-- Her tuş için ayrı gecikme süresi ayarlayın
-- Tuş sırasını istediğiniz gibi düzenleyin
+### Fare Modu
+- Fare modunu seçin
+- İstediğiniz fare işlemini seçin:
+  - **Sol Tık**: Mevcut imlec konumunda sol tık
+  - **Sağ Tık**: Mevcut imlec konumunda sağ tık
+  - **Orta Tık**: Mevcut imlec konumunda orta tık
+  - **Tekerlek Yukarı**: Yukarı kaydırma
+  - **Tekerlek Aşağı**: Aşağı kaydırma
+  - **Çift Tık**: Hızlı çift sol tık
+
+### Çoklu İşlem Modu
+- Çoklu işlem modunu seçin
+- İşlem listesine tuş veya fare işlemleri ekleyin
+- Her işlem için ayrı gecikme süresi ayarlayın
+- İşlem sırasını istediğiniz gibi düzenleyin
+- **Karma Diziler**: Tuş basma + fare tıklama + tekerlek kaydırma kombinasyonları oluşturun
 
 ### Kullanım Senaryoları
-- **Oyun AFK**: Karakterin aktif kalması için
+- **Oyun AFK**: Karakterin aktif kalması için (tuş veya fare)
 - **Form Doldurma**: Alanlar arası otomatik geçiş
 - **Test Otomasyonu**: Tekrarlayan test adımları
 - **Erişilebilirlik**: Fiziksel kısıtlamalarda yardımcı araç
+- **Web Tarama**: Otomatik sayfa kaydırma (tekerlek)
+- **Tıklama Oyunları**: Sürekli tıklama gerektiren oyunlar
 
 ## Güvenlik
 

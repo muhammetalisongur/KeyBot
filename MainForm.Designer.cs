@@ -8,7 +8,9 @@ namespace KeyBot
         private ComboBox keyComboBox;
         private RadioButton singleKeyRadio;
         private RadioButton multiKeyRadio;
+        private RadioButton mouseRadio;
         private GroupBox multiKeyGroup;
+        private ComboBox mouseComboBox;
         private ListBox keySequenceList;
         private Button addKeyButton;
         private Button removeKeyButton;
@@ -50,8 +52,10 @@ namespace KeyBot
             addKeyButton = new Button();
             keySequenceList = new ListBox();
             multiKeyRadio = new RadioButton();
+            mouseRadio = new RadioButton();
             singleKeyRadio = new RadioButton();
             keyComboBox = new ComboBox();
+            mouseComboBox = new ComboBox();
             keyLabel = new Label();
             timeGroup = new GroupBox();
             infiniteCheckBox = new CheckBox();
@@ -76,8 +80,10 @@ namespace KeyBot
             // 
             keyGroup.Controls.Add(multiKeyGroup);
             keyGroup.Controls.Add(multiKeyRadio);
+            keyGroup.Controls.Add(mouseRadio);
             keyGroup.Controls.Add(singleKeyRadio);
             keyGroup.Controls.Add(keyComboBox);
+            keyGroup.Controls.Add(mouseComboBox);
             keyGroup.Controls.Add(keyLabel);
             keyGroup.Location = new Point(23, 27);
             keyGroup.Margin = new Padding(3, 4, 3, 4);
@@ -86,7 +92,7 @@ namespace KeyBot
             keyGroup.Size = new Size(503, 340);
             keyGroup.TabIndex = 0;
             keyGroup.TabStop = false;
-            keyGroup.Text = "Tuş Seçimi";
+            keyGroup.Text = "İşlem Seçimi";
             // 
             // multiKeyGroup
             // 
@@ -103,7 +109,7 @@ namespace KeyBot
             multiKeyGroup.Size = new Size(460, 200);
             multiKeyGroup.TabIndex = 4;
             multiKeyGroup.TabStop = false;
-            multiKeyGroup.Text = "Tuş Dizisi";
+            multiKeyGroup.Text = "İşlem Dizisi";
             // 
             // keyDelayLabel
             // 
@@ -130,7 +136,7 @@ namespace KeyBot
             newKeyComboBox.Cursor = Cursors.Hand;
             newKeyComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
             newKeyComboBox.FormattingEnabled = true;
-            newKeyComboBox.Items.AddRange(new object[] { "Space", "Enter", "Tab", "Escape", "Backspace", "Delete", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "Left", "Right", "Up", "Down" });
+            newKeyComboBox.Items.AddRange(new object[] { "Space", "Enter", "Tab", "Escape", "Backspace", "Delete", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "Left", "Right", "Up", "Down", "--- FARE İŞLEMLERİ ---", "Sol Tık", "Sağ Tık", "Orta Tık", "Tekerlek Yukarı", "Tekerlek Aşağı", "Çift Tık" });
             newKeyComboBox.Location = new Point(330, 30);
             newKeyComboBox.Name = "newKeyComboBox";
             newKeyComboBox.Size = new Size(120, 28);
@@ -181,12 +187,24 @@ namespace KeyBot
             // 
             multiKeyRadio.AutoSize = true;
             multiKeyRadio.Cursor = Cursors.Hand;
-            multiKeyRadio.Location = new Point(120, 80);
+            multiKeyRadio.Location = new Point(102, 80);
             multiKeyRadio.Name = "multiKeyRadio";
-            multiKeyRadio.Size = new Size(93, 24);
+            multiKeyRadio.Size = new Size(106, 24);
             multiKeyRadio.TabIndex = 3;
-            multiKeyRadio.Text = "Çoklu Tuş";
+            multiKeyRadio.Text = "Çoklu İşlem";
             multiKeyRadio.UseVisualStyleBackColor = true;
+            // 
+            // mouseRadio
+            // 
+            mouseRadio.AutoSize = true;
+            mouseRadio.Cursor = Cursors.Hand;
+            mouseRadio.Location = new Point(214, 80);
+            mouseRadio.Name = "mouseRadio";
+            mouseRadio.Size = new Size(57, 24);
+            mouseRadio.TabIndex = 7;
+            mouseRadio.Text = "Fare";
+            mouseRadio.UseVisualStyleBackColor = true;
+            mouseRadio.CheckedChanged += MouseRadio_CheckedChanged;
             // 
             // singleKeyRadio
             // 
@@ -195,10 +213,10 @@ namespace KeyBot
             singleKeyRadio.Cursor = Cursors.Hand;
             singleKeyRadio.Location = new Point(23, 80);
             singleKeyRadio.Name = "singleKeyRadio";
-            singleKeyRadio.Size = new Size(78, 24);
+            singleKeyRadio.Size = new Size(73, 24);
             singleKeyRadio.TabIndex = 2;
             singleKeyRadio.TabStop = true;
-            singleKeyRadio.Text = "Tek Tuş";
+            singleKeyRadio.Text = "Klavye";
             singleKeyRadio.UseVisualStyleBackColor = true;
             singleKeyRadio.CheckedChanged += SingleKeyRadio_CheckedChanged;
             // 
@@ -207,21 +225,34 @@ namespace KeyBot
             keyComboBox.Cursor = Cursors.Hand;
             keyComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
             keyComboBox.FormattingEnabled = true;
-            keyComboBox.Items.AddRange(new object[] { "Space", "Enter", "Tab", "Escape", "Backspace", "Delete", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "Left", "Right", "Up", "Down" });
-            keyComboBox.Location = new Point(149, 36);
+            keyComboBox.Items.AddRange(new object[] { "Space", "Enter", "Tab", "Escape", "Backspace", "Delete", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "Left", "Right", "Up", "Down", "--- FARE İŞLEMLERİ ---", "Sol Tık", "Sağ Tık", "Orta Tık", "Tekerlek Yukarı", "Tekerlek Aşağı", "Çift Tık" });
+            keyComboBox.Location = new Point(160, 36);
             keyComboBox.Margin = new Padding(3, 4, 3, 4);
             keyComboBox.Name = "keyComboBox";
-            keyComboBox.Size = new Size(171, 28);
+            keyComboBox.Size = new Size(140, 28);
             keyComboBox.TabIndex = 1;
+            // 
+            // mouseComboBox
+            // 
+            mouseComboBox.Cursor = Cursors.Hand;
+            mouseComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            mouseComboBox.Enabled = false;
+            mouseComboBox.FormattingEnabled = true;
+            mouseComboBox.Items.AddRange(new object[] { "Sol Tık", "Sağ Tık", "Orta Tık", "Tekerlek Yukarı", "Tekerlek Aşağı", "Çift Tık" });
+            mouseComboBox.Location = new Point(310, 36);
+            mouseComboBox.Margin = new Padding(3, 4, 3, 4);
+            mouseComboBox.Name = "mouseComboBox";
+            mouseComboBox.Size = new Size(140, 28);
+            mouseComboBox.TabIndex = 8;
             // 
             // keyLabel
             // 
             keyLabel.AutoSize = true;
             keyLabel.Location = new Point(23, 40);
             keyLabel.Name = "keyLabel";
-            keyLabel.Size = new Size(99, 20);
+            keyLabel.Size = new Size(131, 20);
             keyLabel.TabIndex = 0;
-            keyLabel.Text = "Basılacak Tuş:";
+            keyLabel.Text = "Klavye/Fare İşlemi:";
             // 
             // timeGroup
             // 
@@ -324,7 +355,7 @@ namespace KeyBot
             // statusLabel
             // 
             statusLabel.AutoSize = true;
-            statusLabel.Location = new Point(297, 563);
+            statusLabel.Location = new Point(297, 566);
             statusLabel.Name = "statusLabel";
             statusLabel.Size = new Size(44, 20);
             statusLabel.TabIndex = 4;
