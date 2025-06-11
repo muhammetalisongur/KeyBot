@@ -32,6 +32,8 @@ namespace KeyBot
         private ToolTip keySequenceToolTip;
         private Button captureKeyButton;
         private Button captureMouseButton;
+        private Button capturePositionButton;
+        private Label positionLabel;
         private ToolTip captureToolTip;
 
         protected override void Dispose(bool disposing)
@@ -48,7 +50,9 @@ namespace KeyBot
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             keyGroup = new GroupBox();
+            positionLabel = new Label();
             multiKeyGroup = new GroupBox();
+            capturePositionButton = new Button();
             captureMouseButton = new Button();
             captureKeyButton = new Button();
             keyDelayLabel = new Label();
@@ -87,6 +91,8 @@ namespace KeyBot
             // 
             // keyGroup
             // 
+            keyGroup.Controls.Add(capturePositionButton);
+            keyGroup.Controls.Add(positionLabel);
             keyGroup.Controls.Add(multiKeyGroup);
             keyGroup.Controls.Add(multiKeyRadio);
             keyGroup.Controls.Add(mouseRadio);
@@ -98,10 +104,21 @@ namespace KeyBot
             keyGroup.Margin = new Padding(3, 4, 3, 4);
             keyGroup.Name = "keyGroup";
             keyGroup.Padding = new Padding(3, 4, 3, 4);
-            keyGroup.Size = new Size(503, 340);
+            keyGroup.Size = new Size(503, 370);
             keyGroup.TabIndex = 0;
             keyGroup.TabStop = false;
             keyGroup.Text = "İşlem Seçimi";
+            // 
+            // positionLabel
+            // 
+            positionLabel.AutoSize = true;
+            positionLabel.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            positionLabel.ForeColor = Color.Red;
+            positionLabel.Location = new Point(23, 330);
+            positionLabel.Name = "positionLabel";
+            positionLabel.Size = new Size(156, 20);
+            positionLabel.TabIndex = 9;
+            positionLabel.Text = "Konum: Belirlenmedi";
             // 
             // multiKeyGroup
             // 
@@ -121,6 +138,19 @@ namespace KeyBot
             multiKeyGroup.TabIndex = 4;
             multiKeyGroup.TabStop = false;
             multiKeyGroup.Text = "İşlem Dizisi";
+            // 
+            // capturePositionButton
+            // 
+            capturePositionButton.BackColor = Color.LightGreen;
+            capturePositionButton.Cursor = Cursors.Hand;
+            capturePositionButton.Location = new Point(286, 75);
+            capturePositionButton.Name = "capturePositionButton";
+            capturePositionButton.Size = new Size(56, 35);
+            capturePositionButton.TabIndex = 9;
+            capturePositionButton.Text = "📍";
+            captureToolTip.SetToolTip(capturePositionButton, "Fare konumunu yakala");
+            capturePositionButton.UseVisualStyleBackColor = false;
+            capturePositionButton.Click += CapturePositionButton_Click;
             // 
             // captureMouseButton
             // 
@@ -306,7 +336,7 @@ namespace KeyBot
             timeGroup.Controls.Add(repeatLabel);
             timeGroup.Controls.Add(intervalNumeric);
             timeGroup.Controls.Add(intervalLabel);
-            timeGroup.Location = new Point(23, 390);
+            timeGroup.Location = new Point(23, 420);
             timeGroup.Margin = new Padding(3, 4, 3, 4);
             timeGroup.Name = "timeGroup";
             timeGroup.Padding = new Padding(3, 4, 3, 4);
@@ -374,7 +404,7 @@ namespace KeyBot
             // 
             startButton.BackColor = Color.LightGreen;
             startButton.Cursor = Cursors.Hand;
-            startButton.Location = new Point(23, 550);
+            startButton.Location = new Point(23, 580);
             startButton.Margin = new Padding(3, 4, 3, 4);
             startButton.Name = "startButton";
             startButton.Size = new Size(114, 53);
@@ -388,7 +418,7 @@ namespace KeyBot
             stopButton.BackColor = Color.LightCoral;
             stopButton.Cursor = Cursors.Hand;
             stopButton.Enabled = false;
-            stopButton.Location = new Point(160, 550);
+            stopButton.Location = new Point(160, 580);
             stopButton.Margin = new Padding(3, 4, 3, 4);
             stopButton.Name = "stopButton";
             stopButton.Size = new Size(114, 53);
@@ -400,7 +430,7 @@ namespace KeyBot
             // statusLabel
             // 
             statusLabel.AutoSize = true;
-            statusLabel.Location = new Point(280, 555);
+            statusLabel.Location = new Point(280, 585);
             statusLabel.MaximumSize = new Size(250, 500);
             statusLabel.Name = "statusLabel";
             statusLabel.Size = new Size(44, 20);
@@ -409,7 +439,7 @@ namespace KeyBot
             // 
             // progressBar
             // 
-            progressBar.Location = new Point(23, 625);
+            progressBar.Location = new Point(23, 655);
             progressBar.Margin = new Padding(3, 4, 3, 4);
             progressBar.Name = "progressBar";
             progressBar.Size = new Size(503, 27);
@@ -421,7 +451,7 @@ namespace KeyBot
             developerLabel.Cursor = Cursors.Hand;
             developerLabel.Font = new Font("Segoe UI", 8.25F, FontStyle.Italic);
             developerLabel.ForeColor = Color.Gray;
-            developerLabel.Location = new Point(23, 672);
+            developerLabel.Location = new Point(23, 702);
             developerLabel.Name = "developerLabel";
             developerLabel.Size = new Size(412, 19);
             developerLabel.TabIndex = 6;
@@ -444,7 +474,7 @@ namespace KeyBot
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(546, 700);
+            ClientSize = new Size(546, 730);
             Controls.Add(developerLabel);
             Controls.Add(progressBar);
             Controls.Add(statusLabel);

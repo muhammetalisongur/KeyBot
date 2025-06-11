@@ -12,5 +12,11 @@ namespace KeyBot.Models
         public int RepeatCount { get; set; } = 10;
         public bool IsInfinite { get; set; } = false;
         public List<KeySequenceItem> KeySequence { get; set; } = new List<KeySequenceItem>();
+        public int CapturedMouseX { get; set; } = -1;
+        public int CapturedMouseY { get; set; } = -1;
+        
+        // Özel eklenen tuşlar ve fare işlemleri
+        public List<string> CustomKeys { get; set; } = new List<string>();
+        public List<string> CustomMouseActions { get; set; } = new List<string>();
     }
 } 

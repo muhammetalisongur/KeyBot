@@ -1,23 +1,23 @@
 {
-  "IsSingleKeyMode": true,
+  "IsSingleKeyMode": false,
   "IsMouseMode": false,
-  "SelectedKey": "Space",
-  "SelectedMouse": "Sol T\u0131k",
+  "SelectedKey": "w (en-US)",
+  "SelectedMouse": "Fare Tu\u015F 5",
   "Interval": 1.0,
   "RepeatCount": 10,
   "IsInfinite": false,
-  "KeySequence": [
-    {
-      "KeyName": "Space",
-      "Delay": 0.5
-    },
-    {
-      "KeyName": "Sol T\u0131k",
-      "Delay": 0.8
-    },
-    {
-      "KeyName": "Space",
-      "Delay": 0.8
-    }
+  "KeySequence": [],
+  "CapturedMouseX": -753,
+  "CapturedMouseY": 706,
+  "CustomKeys": [
+    "[",
+    "NumPad5",
+    ",",
+    "\u00FC (tr-TR)",
+    "] (en-US)",
+    "w (en-US)"
+  ],
+  "CustomMouseActions": [
+    "Fare Tu\u015F 5"
   ]
 }
