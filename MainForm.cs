@@ -96,6 +96,7 @@ namespace KeyBot
             InitializeComponent();
             keyComboBox.SelectedIndexChanged += KeyComboBox_SelectedIndexChanged;
             newKeyComboBox.SelectedIndexChanged += NewKeyComboBox_SelectedIndexChanged;
+            this.KeyDown += MainForm_KeyDown;
             LoadSettings();
             UpdatePositionDisplay();
         }
@@ -383,10 +384,25 @@ namespace KeyBot
                 return;
             }
 
+            try
+            {
+                string sendKeysFormat = ConvertToSendKeysFormat(keyName);
+                if (!string.IsNullOrEmpty(sendKeysFormat))
+                {
+                    SendKeys.Send(sendKeysFormat);
+                    return;
+                }
+            }
+            catch
+            {
+                // Fallback to keybd_event if SendKeys fails
+            }
+
             byte vkCode = GetVirtualKeyCode(keyName);
             if (vkCode != 0)
             {
                 keybd_event(vkCode, (byte)MapVirtualKey(vkCode, 0), 0, 0);
+                System.Threading.Thread.Sleep(50);
                 keybd_event(vkCode, (byte)MapVirtualKey(vkCode, 0), KEYEVENTF_KEYUP, 0);
             }
         }
@@ -475,7 +491,10 @@ namespace KeyBot
         /// </summary>
         private byte GetVirtualKeyCode(string keyName)
         {
-            return keyName switch
+            // Extract key from complex formats like "w (en-US)" 
+            string cleanKeyName = ExtractKeyFromComplexFormat(keyName);
+            
+            return cleanKeyName switch
             {
                 "Space" => 0x20,
                 "Enter" => 0x0D,
@@ -499,9 +518,179 @@ namespace KeyBot
                 "F10" => 0x79,
                 "F11" => 0x7A,
                 "F12" => 0x7B,
-                _ when keyName.Length == 1 && char.IsLetter(keyName[0]) => (byte)keyName.ToUpper()[0],
-                _ when keyName.Length == 1 && char.IsDigit(keyName[0]) => (byte)keyName[0],
+                "NumPad0" => 0x60,
+                "NumPad1" => 0x61,
+                "NumPad2" => 0x62,
+                "NumPad3" => 0x63,
+                "NumPad4" => 0x64,
+                "NumPad5" => 0x65,
+                "NumPad6" => 0x66,
+                "NumPad7" => 0x67,
+                "NumPad8" => 0x68,
+                "NumPad9" => 0x69,
+                "NumPad+" => 0x6B,
+                "NumPad-" => 0x6D,
+                "NumPad*" => 0x6A,
+                "NumPad/" => 0x6F,
+                "NumPad." => 0x6E,
+                "Home" => 0x24,
+                "End" => 0x23,
+                "PageUp" => 0x21,
+                "PageDown" => 0x22,
+                "Insert" => 0x2D,
+                "Ctrl" => 0x11,
+                "Shift" => 0x10,
+                "Alt" => 0x12,
+                "Windows" => 0x5B,
+                "CapsLock" => 0x14,
+                "NumLock" => 0x90,
+                "ScrollLock" => 0x91,
+                "PrintScreen" => 0x2C,
+                "Pause" => 0x13,
+                _ when cleanKeyName.Length == 1 && char.IsLetter(cleanKeyName[0]) => (byte)cleanKeyName.ToUpper()[0],
+                _ when cleanKeyName.Length == 1 && char.IsDigit(cleanKeyName[0]) => (byte)cleanKeyName[0],
+                _ => GetVirtualKeyCodeForCustomKey(cleanKeyName)
+            };
+        }
+
+        /// <summary>
+        /// Extract key from complex formats like "w (en-US)" or "ü (tr-TR)"
+        /// </summary>
+        private string ExtractKeyFromComplexFormat(string keyName)
+        {
+            // Check for format like "w (en-US)"
+            if (keyName.Contains(" (") && keyName.Contains(")"))
+            {
+                int spaceIndex = keyName.IndexOf(" (");
+                if (spaceIndex > 0)
+                {
+                    return keyName.Substring(0, spaceIndex);
+                }
+            }
+            
+            return keyName;
+        }
+
+        /// <summary>
+        /// Get virtual key code for custom keys using VkKeyScan
+        /// </summary>
+        private byte GetVirtualKeyCodeForCustomKey(string keyName)
+        {
+            if (string.IsNullOrEmpty(keyName)) return 0;
+            
+            // Additional special cases
+            return keyName switch
+            {
+                "[" => 0xDB,    // OEM_4
+                "]" => 0xDD,    // OEM_6
+                ";" => 0xBA,    // OEM_1
+                "'" => 0xDE,    // OEM_7
+                "`" => 0xC0,    // OEM_3
+                "," => 0xBC,    // OEM_COMMA
+                "." => 0xBE,    // OEM_PERIOD
+                "/" => 0xBF,    // OEM_2
+                "\\" => 0xDC,   // OEM_5
+                "=" => 0xBB,    // OEM_PLUS
+                "-" => 0xBD,    // OEM_MINUS
                 _ => 0
+            };
+        }
+
+        /// <summary>
+        /// Convert key name to SendKeys format for natural key simulation
+        /// </summary>
+        private string ConvertToSendKeysFormat(string keyName)
+        {
+            // Extract clean key name
+            string cleanKeyName = ExtractKeyFromComplexFormat(keyName);
+            
+            return cleanKeyName switch
+            {
+                // Special keys
+                "Space" => " ",
+                "Enter" => "{ENTER}",
+                "Tab" => "{TAB}",
+                "Escape" => "{ESC}",
+                "Backspace" => "{BACKSPACE}",
+                "Delete" => "{DELETE}",
+                "Left" => "{LEFT}",
+                "Right" => "{RIGHT}",
+                "Up" => "{UP}",
+                "Down" => "{DOWN}",
+                "Home" => "{HOME}",
+                "End" => "{END}",
+                "PageUp" => "{PGUP}",
+                "PageDown" => "{PGDN}",
+                "Insert" => "{INSERT}",
+                
+                // Function keys
+                "F1" => "{F1}",
+                "F2" => "{F2}",
+                "F3" => "{F3}",
+                "F4" => "{F4}",
+                "F5" => "{F5}",
+                "F6" => "{F6}",
+                "F7" => "{F7}",
+                "F8" => "{F8}",
+                "F9" => "{F9}",
+                "F10" => "{F10}",
+                "F11" => "{F11}",
+                "F12" => "{F12}",
+                
+                // NumPad
+                "NumPad0" => "{NUMPAD0}",
+                "NumPad1" => "{NUMPAD1}",
+                "NumPad2" => "{NUMPAD2}",
+                "NumPad3" => "{NUMPAD3}",
+                "NumPad4" => "{NUMPAD4}",
+                "NumPad5" => "{NUMPAD5}",
+                "NumPad6" => "{NUMPAD6}",
+                "NumPad7" => "{NUMPAD7}",
+                "NumPad8" => "{NUMPAD8}",
+                "NumPad9" => "{NUMPAD9}",
+                "NumPad+" => "{ADD}",
+                "NumPad-" => "{SUBTRACT}",
+                "NumPad*" => "{MULTIPLY}",
+                "NumPad/" => "{DIVIDE}",
+                "NumPad." => "{DECIMAL}",
+                
+                // Modifier keys
+                "Ctrl" => "^",
+                "Shift" => "+",
+                "Alt" => "%",
+                "Windows" => "^{ESC}",
+                
+                // Lock keys
+                "CapsLock" => "{CAPSLOCK}",
+                "NumLock" => "{NUMLOCK}",
+                "ScrollLock" => "{SCROLLLOCK}",
+                "PrintScreen" => "{PRTSC}",
+                "Pause" => "{BREAK}",
+                
+                // Regular characters and special symbols
+                _ when cleanKeyName.Length == 1 => EscapeSpecialChars(cleanKeyName),
+                _ => cleanKeyName
+            };
+        }
+
+        /// <summary>
+        /// Escape special characters for SendKeys
+        /// </summary>
+        private string EscapeSpecialChars(string input)
+        {
+            return input switch
+            {
+                "+" => "{+}",
+                "^" => "{^}",
+                "%" => "{%}",
+                "~" => "{~}",
+                "(" => "{(}",
+                ")" => "{)}",
+                "[" => "{[}",
+                "]" => "{]}",
+                "{" => "{{}",
+                "}" => "{}}",
+                _ => input
             };
         }
 
@@ -589,12 +778,181 @@ namespace KeyBot
         }
 
         /// <summary>
-        /// Clear all items from sequence list
+        /// Clear all keys from sequence
         /// </summary>
         private void ClearAllKeysButton_Click(object sender, EventArgs e)
         {
             keySequence.Clear();
             keySequenceList.Items.Clear();
+            statusLabel.Text = "Tüm tuşlar temizlendi";
+        }
+
+        /// <summary>
+        /// Remove selected custom key from lists and ComboBoxes
+        /// </summary>
+        private void RemoveCustomKeyButton_Click(object sender, EventArgs e)
+        {
+            string? selectedKey = null;
+            
+            // Determine which ComboBox has the selected item
+            if (keyComboBox.SelectedItem != null && IsCustomKey(keyComboBox.SelectedItem.ToString()))
+            {
+                selectedKey = keyComboBox.SelectedItem.ToString();
+            }
+            else if (newKeyComboBox.SelectedItem != null && IsCustomKey(newKeyComboBox.SelectedItem.ToString()))
+            {
+                selectedKey = newKeyComboBox.SelectedItem.ToString();
+            }
+            
+            if (selectedKey == null)
+            {
+                MessageBox.Show("Lütfen silmek istediğiniz özel tuşu seçin!", "Uyarı", 
+                               MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            
+            var result = MessageBox.Show($"'{selectedKey}' özel tuşunu silmek istediğinizden emin misiniz?", 
+                                       "Onay", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            
+            if (result == DialogResult.Yes)
+            {
+                RemoveCustomKeyFromLists(selectedKey);
+                statusLabel.Text = $"Özel tuş silindi: {selectedKey}";
+            }
+        }
+
+        /// <summary>
+        /// Clear all custom keys
+        /// </summary>
+        private void ClearCustomKeysButton_Click(object sender, EventArgs e)
+        {
+            if (customKeys.Count == 0 && customMouseActions.Count == 0)
+            {
+                MessageBox.Show("Silinecek özel tuş veya fare işlemi bulunamadı!", "Bilgi", 
+                               MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            
+            var result = MessageBox.Show("Tüm özel tuşları ve fare işlemlerini silmek istediğinizden emin misiniz?", 
+                                       "Onay", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            
+            if (result == DialogResult.Yes)
+            {
+                ClearAllCustomItems();
+                statusLabel.Text = "Tüm özel tuşlar ve fare işlemleri temizlendi";
+            }
+        }
+
+        /// <summary>
+        /// Check if the key is a custom key
+        /// </summary>
+        private bool IsCustomKey(string? keyName)
+        {
+            if (string.IsNullOrEmpty(keyName)) return false;
+            return customKeys.Contains(keyName) || customMouseActions.Contains(keyName);
+        }
+
+        /// <summary>
+        /// Remove custom key from all lists and ComboBoxes
+        /// </summary>
+        private void RemoveCustomKeyFromLists(string keyName)
+        {
+            // Remove from custom lists
+            customKeys.Remove(keyName);
+            customMouseActions.Remove(keyName);
+            
+            // Remove from ComboBoxes
+            RemoveItemFromComboBox(keyComboBox, keyName);
+            RemoveItemFromComboBox(newKeyComboBox, keyName);
+            RemoveItemFromComboBox(mouseComboBox, keyName);
+            
+            // Remove from key sequence if present
+            for (int i = keySequence.Count - 1; i >= 0; i--)
+            {
+                if (keySequence[i].KeyName == keyName)
+                {
+                    keySequence.RemoveAt(i);
+                }
+            }
+            
+            // Update key sequence list display
+            RefreshKeySequenceList();
+            
+            // Save settings
+            SaveSettings();
+        }
+
+        /// <summary>
+        /// Remove item from ComboBox safely
+        /// </summary>
+        private void RemoveItemFromComboBox(ComboBox comboBox, string item)
+        {
+            int index = comboBox.Items.IndexOf(item);
+            if (index >= 0)
+            {
+                // If this item is selected, select the first item
+                bool wasSelected = comboBox.SelectedIndex == index;
+                comboBox.Items.RemoveAt(index);
+                
+                if (wasSelected && comboBox.Items.Count > 0)
+                {
+                    comboBox.SelectedIndex = 0;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Clear all custom items from lists and ComboBoxes
+        /// </summary>
+        private void ClearAllCustomItems()
+        {
+            // Store items to remove
+            var keysToRemove = new List<string>(customKeys);
+            var mouseActionsToRemove = new List<string>(customMouseActions);
+            
+            // Clear custom lists
+            customKeys.Clear();
+            customMouseActions.Clear();
+            
+            // Remove from ComboBoxes
+            foreach (string key in keysToRemove)
+            {
+                RemoveItemFromComboBox(keyComboBox, key);
+                RemoveItemFromComboBox(newKeyComboBox, key);
+            }
+            
+            foreach (string mouseAction in mouseActionsToRemove)
+            {
+                RemoveItemFromComboBox(mouseComboBox, mouseAction);
+                RemoveItemFromComboBox(newKeyComboBox, mouseAction);
+            }
+            
+            // Remove from key sequence
+            for (int i = keySequence.Count - 1; i >= 0; i--)
+            {
+                if (keysToRemove.Contains(keySequence[i].KeyName) || mouseActionsToRemove.Contains(keySequence[i].KeyName))
+                {
+                    keySequence.RemoveAt(i);
+                }
+            }
+            
+            // Update key sequence list display
+            RefreshKeySequenceList();
+            
+            // Save settings
+            SaveSettings();
+        }
+
+        /// <summary>
+        /// Refresh key sequence list display
+        /// </summary>
+        private void RefreshKeySequenceList()
+        {
+            keySequenceList.Items.Clear();
+            foreach (var item in keySequence)
+            {
+                keySequenceList.Items.Add($"{item.KeyName} - {item.Delay:F1}s");
+            }
         }
 
         /// <summary>
@@ -605,6 +963,25 @@ namespace KeyBot
             StopAutomation();
             SaveSettings();
             base.OnFormClosing(e);
+        }
+
+        /// <summary>
+        /// Handle KeyDown event for key capture
+        /// </summary>
+        private void MainForm_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (isCapturingKey)
+            {
+                string keyName = ConvertKeyToString(e.KeyCode);
+                if (!string.IsNullOrEmpty(keyName))
+                {
+                    AddCapturedKeyToComboBoxes(keyName);
+                    EndKeyCapture();
+                    statusLabel.Text = $"Tuş yakalandı: {keyName}";
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                }
+            }
         }
 
         #endregion
@@ -1022,20 +1399,6 @@ namespace KeyBot
                 else if (keyData == Keys.Space)
                 {
                     CaptureCurrentPosition();
-                    return true;
-                }
-            }
-            
-            if (isCapturingKey)
-            {
-                string keyName = ConvertKeyToString(keyData);
-                if (!string.IsNullOrEmpty(keyName))
-                {
-                    AddCapturedKeyToComboBoxes(keyName);
-                    
-                    EndKeyCapture();
-                    
-                    statusLabel.Text = $"Tuş yakalandı: {keyName}";
                     return true;
                 }
             }

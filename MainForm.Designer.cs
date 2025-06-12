@@ -35,6 +35,8 @@ namespace KeyBot
         private Button capturePositionButton;
         private Label positionLabel;
         private ToolTip captureToolTip;
+        private Button clearCustomKeysButton;
+        private Button removeCustomKeyButton;
 
         protected override void Dispose(bool disposing)
         {
@@ -50,9 +52,11 @@ namespace KeyBot
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             keyGroup = new GroupBox();
+            clearCustomKeysButton = new Button();
+            removeCustomKeyButton = new Button();
+            capturePositionButton = new Button();
             positionLabel = new Label();
             multiKeyGroup = new GroupBox();
-            capturePositionButton = new Button();
             captureMouseButton = new Button();
             captureKeyButton = new Button();
             keyDelayLabel = new Label();
@@ -91,6 +95,8 @@ namespace KeyBot
             // 
             // keyGroup
             // 
+            keyGroup.Controls.Add(clearCustomKeysButton);
+            keyGroup.Controls.Add(removeCustomKeyButton);
             keyGroup.Controls.Add(capturePositionButton);
             keyGroup.Controls.Add(positionLabel);
             keyGroup.Controls.Add(multiKeyGroup);
@@ -104,17 +110,56 @@ namespace KeyBot
             keyGroup.Margin = new Padding(3, 4, 3, 4);
             keyGroup.Name = "keyGroup";
             keyGroup.Padding = new Padding(3, 4, 3, 4);
-            keyGroup.Size = new Size(503, 370);
+            keyGroup.Size = new Size(503, 385);
             keyGroup.TabIndex = 0;
             keyGroup.TabStop = false;
             keyGroup.Text = "İşlem Seçimi";
+            // 
+            // clearCustomKeysButton
+            // 
+            clearCustomKeysButton.BackColor = Color.LightCoral;
+            clearCustomKeysButton.Cursor = Cursors.Hand;
+            clearCustomKeysButton.Location = new Point(348, 107);
+            clearCustomKeysButton.Name = "clearCustomKeysButton";
+            clearCustomKeysButton.Size = new Size(120, 30);
+            clearCustomKeysButton.TabIndex = 7;
+            clearCustomKeysButton.Text = "Tümünü Temizle";
+            captureToolTip.SetToolTip(clearCustomKeysButton, "Tüm özel tuşları ve fare işlemlerini temizle");
+            clearCustomKeysButton.UseVisualStyleBackColor = false;
+            clearCustomKeysButton.Click += ClearCustomKeysButton_Click;
+            // 
+            // removeCustomKeyButton
+            // 
+            removeCustomKeyButton.BackColor = Color.LightYellow;
+            removeCustomKeyButton.Cursor = Cursors.Hand;
+            removeCustomKeyButton.Location = new Point(348, 71);
+            removeCustomKeyButton.Name = "removeCustomKeyButton";
+            removeCustomKeyButton.Size = new Size(120, 30);
+            removeCustomKeyButton.TabIndex = 8;
+            removeCustomKeyButton.Text = "Seçili Tuşu Sil";
+            captureToolTip.SetToolTip(removeCustomKeyButton, "Seçili özel tuşu sil");
+            removeCustomKeyButton.UseVisualStyleBackColor = false;
+            removeCustomKeyButton.Click += RemoveCustomKeyButton_Click;
+            // 
+            // capturePositionButton
+            // 
+            capturePositionButton.BackColor = Color.LightGreen;
+            capturePositionButton.Cursor = Cursors.Hand;
+            capturePositionButton.Location = new Point(286, 88);
+            capturePositionButton.Name = "capturePositionButton";
+            capturePositionButton.Size = new Size(56, 35);
+            capturePositionButton.TabIndex = 9;
+            capturePositionButton.Text = "📍";
+            captureToolTip.SetToolTip(capturePositionButton, "Fare konumunu yakala");
+            capturePositionButton.UseVisualStyleBackColor = false;
+            capturePositionButton.Click += CapturePositionButton_Click;
             // 
             // positionLabel
             // 
             positionLabel.AutoSize = true;
             positionLabel.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             positionLabel.ForeColor = Color.Red;
-            positionLabel.Location = new Point(23, 330);
+            positionLabel.Location = new Point(23, 354);
             positionLabel.Name = "positionLabel";
             positionLabel.Size = new Size(156, 20);
             positionLabel.TabIndex = 9;
@@ -132,25 +177,12 @@ namespace KeyBot
             multiKeyGroup.Controls.Add(addKeyButton);
             multiKeyGroup.Controls.Add(keySequenceList);
             multiKeyGroup.Enabled = false;
-            multiKeyGroup.Location = new Point(23, 120);
+            multiKeyGroup.Location = new Point(23, 144);
             multiKeyGroup.Name = "multiKeyGroup";
             multiKeyGroup.Size = new Size(460, 200);
             multiKeyGroup.TabIndex = 4;
             multiKeyGroup.TabStop = false;
             multiKeyGroup.Text = "İşlem Dizisi";
-            // 
-            // capturePositionButton
-            // 
-            capturePositionButton.BackColor = Color.LightGreen;
-            capturePositionButton.Cursor = Cursors.Hand;
-            capturePositionButton.Location = new Point(286, 75);
-            capturePositionButton.Name = "capturePositionButton";
-            capturePositionButton.Size = new Size(56, 35);
-            capturePositionButton.TabIndex = 9;
-            capturePositionButton.Text = "📍";
-            captureToolTip.SetToolTip(capturePositionButton, "Fare konumunu yakala");
-            capturePositionButton.UseVisualStyleBackColor = false;
-            capturePositionButton.Click += CapturePositionButton_Click;
             // 
             // captureMouseButton
             // 
@@ -261,7 +293,7 @@ namespace KeyBot
             // 
             multiKeyRadio.AutoSize = true;
             multiKeyRadio.Cursor = Cursors.Hand;
-            multiKeyRadio.Location = new Point(102, 80);
+            multiKeyRadio.Location = new Point(102, 93);
             multiKeyRadio.Name = "multiKeyRadio";
             multiKeyRadio.Size = new Size(106, 24);
             multiKeyRadio.TabIndex = 3;
@@ -273,7 +305,7 @@ namespace KeyBot
             // 
             mouseRadio.AutoSize = true;
             mouseRadio.Cursor = Cursors.Hand;
-            mouseRadio.Location = new Point(214, 80);
+            mouseRadio.Location = new Point(214, 93);
             mouseRadio.Name = "mouseRadio";
             mouseRadio.Size = new Size(57, 24);
             mouseRadio.TabIndex = 7;
@@ -286,7 +318,7 @@ namespace KeyBot
             singleKeyRadio.AutoSize = true;
             singleKeyRadio.Checked = true;
             singleKeyRadio.Cursor = Cursors.Hand;
-            singleKeyRadio.Location = new Point(23, 80);
+            singleKeyRadio.Location = new Point(23, 93);
             singleKeyRadio.Name = "singleKeyRadio";
             singleKeyRadio.Size = new Size(73, 24);
             singleKeyRadio.TabIndex = 2;
@@ -336,7 +368,7 @@ namespace KeyBot
             timeGroup.Controls.Add(repeatLabel);
             timeGroup.Controls.Add(intervalNumeric);
             timeGroup.Controls.Add(intervalLabel);
-            timeGroup.Location = new Point(23, 420);
+            timeGroup.Location = new Point(23, 424);
             timeGroup.Margin = new Padding(3, 4, 3, 4);
             timeGroup.Name = "timeGroup";
             timeGroup.Padding = new Padding(3, 4, 3, 4);

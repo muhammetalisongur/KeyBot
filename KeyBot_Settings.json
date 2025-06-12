@@ -1,23 +1,24 @@
 {
   "IsSingleKeyMode": false,
   "IsMouseMode": false,
-  "SelectedKey": "w (en-US)",
-  "SelectedMouse": "Fare Tu\u015F 5",
+  "SelectedKey": "\u011F (tr-TR)",
+  "SelectedMouse": "Sol T\u0131k",
   "Interval": 1.0,
   "RepeatCount": 10,
   "IsInfinite": false,
-  "KeySequence": [],
+  "KeySequence": [
+    {
+      "KeyName": "\u011F (tr-TR)",
+      "Delay": 0.5,
+      "MouseX": null,
+      "MouseY": null
+    }
+  ],
   "CapturedMouseX": -753,
   "CapturedMouseY": 706,
   "CustomKeys": [
-    "[",
-    "NumPad5",
-    ",",
-    "\u00FC (tr-TR)",
-    "] (en-US)",
-    "w (en-US)"
+    "[ (en-US)",
+    "\u011F (tr-TR)"
   ],
-  "CustomMouseActions": [
-    "Fare Tu\u015F 5"
-  ]
+  "CustomMouseActions": []
 }
