@@ -346,7 +346,7 @@ namespace KeyBot
             mouseComboBox.Enabled = false;
             mouseComboBox.FormattingEnabled = true;
             mouseComboBox.Items.AddRange(new object[] { "Sol Tık", "Sağ Tık", "Orta Tık", "Tekerlek Yukarı", "Tekerlek Aşağı", "Çift Tık" });
-            mouseComboBox.Location = new Point(310, 36);
+            mouseComboBox.Location = new Point(328, 36);
             mouseComboBox.Margin = new Padding(3, 4, 3, 4);
             mouseComboBox.Name = "mouseComboBox";
             mouseComboBox.Size = new Size(140, 28);
